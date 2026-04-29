@@ -1,0 +1,63 @@
+<!--
+locked: true
+-->
+<page title="Blog - Admin">
+<content>
+  <script type="module" src="/kempo-ui/components/Table.js"></script>
+  <script type="module" src="/kempo-ui/components/tableControls/FirstPage.js"></script>
+  <script type="module" src="/kempo-ui/components/tableControls/PrevPage.js"></script>
+  <script type="module" src="/kempo-ui/components/tableControls/NextPage.js"></script>
+  <script type="module" src="/kempo-ui/components/tableControls/LastPage.js"></script>
+  <script type="module" src="/kempo-ui/components/tableControls/PageSelect.js"></script>
+  <script type="module" src="/kempo-ui/components/tableControls/PageSize.js"></script>
+  <div class="d-f mb" style="align-items: center; gap: var(--spacer)">
+    <h1 class="flex mb0">Blog Posts</h1>
+    <a href="/admin/extension/kempo-blog/create" class="btn">New Post</a>
+  </div>
+  <k-table id="posts-table">
+    <k-first-page slot="controls"></k-first-page>
+    <k-prev-page slot="controls"></k-prev-page>
+    <k-next-page slot="controls"></k-next-page>
+    <k-last-page slot="controls"></k-last-page>
+    <k-page-select slot="controls"></k-page-select>
+    <k-page-size slot="controls"></k-page-size>
+    <table>
+      <thead>
+        <tr>
+          <th>Title / Path</th>
+          <th>Author</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="posts-body">
+        <tr><td colspan="5" class="tc-muted">Loading...</td></tr>
+      </tbody>
+    </table>
+  </k-table>
+  <script type="module">
+    import { getPosts, softDeletePost } from '/blog/posts/sdk.js';
+    const tbody = document.getElementById('posts-body');
+
+    const load = async () => {
+      const [err, data] = await getPosts({ limit: 50, offset: 0, status: undefined });
+      if(err){ tbody.innerHTML = `<tr><td colspan="5" class="tc-error">${err.msg}</td></tr>`; return; }
+      if(!data.posts.length){ tbody.innerHTML = '<tr><td colspan="5" class="tc-muted">No posts yet.</td></tr>'; return; }
+      tbody.innerHTML = data.posts.map(p => `
+        <tr>
+          <td><a href="/admin/extension/kempo-blog/edit?path=${encodeURIComponent(p.path)}">${p.name || p.path}</a></td>
+          <td>${p.author}</td>
+          <td>${p.status}${p.public ? '' : ' (private)'}</td>
+          <td>${new Date(p.created).toLocaleDateString()}</td>
+          <td>
+            <a href="/admin/extension/kempo-blog/edit?path=${encodeURIComponent(p.path)}" class="btn small ghost">Edit</a>
+          </td>
+        </tr>
+      `).join('');
+    };
+
+    load();
+  </script>
+</content>
+</page>

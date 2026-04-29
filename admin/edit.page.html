@@ -1,0 +1,19 @@
+<!--
+locked: true
+-->
+<page title="Edit Post - Admin">
+<content>
+  <script type="module" src="/blog/posts/components/PostEdit.js"></script>
+  <div class="d-f mb" style="align-items: center; gap: var(--spacer)">
+    <h1 class="flex mb0">Edit Post</h1>
+    <a href="/admin/extension/kempo-blog/" class="btn ghost secondary">Back</a>
+  </div>
+  <k-blog-post-edit id="post-edit"></k-blog-post-edit>
+  <script type="module">
+    const path = new URLSearchParams(location.search).get('path');
+    if(path){
+      document.getElementById('post-edit').setAttribute('path', path);
+    }
+  </script>
+</content>
+</page>

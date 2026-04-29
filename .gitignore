@@ -1,0 +1,12 @@
+node_modules
+emails
+.vscode
+.env
+.env.production
+*.log
+test-smtp*.js
+vps-*.js
+vps-*.sh
+vps-*.ps1
+emails/
+TODO.md

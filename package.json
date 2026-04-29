@@ -1,0 +1,69 @@
+{
+  "name": "kempo-blog",
+  "version": "0.1.0",
+  "description": "A blog for kempo cms",
+  "license": "MIT",
+  "author": "Dustin Poissant",
+  "type": "module",
+  "main": "sdk.js",
+  "scripts": {
+    "test": "npx kempo-testing"
+  },
+  "exports": {
+    "./install": "./install.js",
+    "./update": "./update.js",
+    "./sdk": "./sdk.js"
+  },
+  "kempo": {
+    "docs": "https://github.com/dustinpoissant/kempo-blog#readme",
+    "public-scope": "blog/posts",
+    "schema": "./server/db/schema.js",
+    "hooks": {
+      "user:registered": "hooks/user-registered.js"
+    },
+    "permissions": [
+      { "name": "posts:create", "description": "Create new blog posts" },
+      { "name": "posts:read", "description": "Read non-public (members-only) blog posts" },
+      { "name": "posts:own:update", "description": "Edit own blog posts" },
+      { "name": "posts:own:delete", "description": "Soft-delete own blog posts" },
+      { "name": "posts:others:update", "description": "Edit other users blog posts" },
+      { "name": "posts:others:delete", "description": "Soft-delete other users blog posts" },
+      { "name": "posts:delete", "description": "Permanently delete disabled blog posts" },
+      { "name": "comments:create", "description": "Post comments on blog posts" },
+      { "name": "comments:update", "description": "Edit own comments" },
+      { "name": "comments:own:delete", "description": "Delete own comments" },
+      { "name": "comments:post_author:delete", "description": "Delete comments on own posts" },
+      { "name": "comments:others:delete", "description": "Delete any comment" }
+    ],
+    "settings": [
+      { "name": "new_user_groups", "value": "kempo-blog:member", "type": "string", "description": "Comma-separated list of groups new users are automatically added to" },
+      { "name": "recent_limit", "value": "5", "type": "number", "description": "Default number of recent posts shown in the RecentPosts component" },
+      { "name": "comments_enabled", "value": "true", "type": "boolean", "description": "Globally enable or disable comments on blog posts" },
+      { "name": "comment_page_size", "value": "20", "type": "number", "description": "Number of comments shown per page" }
+    ],
+    "groups": [
+      {
+        "name": "kempo-blog:member",
+        "description": "Registered members who can read private posts and comment",
+        "permissions": ["posts:read", "comments:create", "comments:update", "comments:own:delete"]
+      },
+      {
+        "name": "kempo-blog:blogger",
+        "description": "Users who can create and manage their own blog posts",
+        "permissions": ["posts:create", "posts:own:update", "posts:own:delete"]
+      },
+      {
+        "name": "kempo-blog:moderator",
+        "description": "Users who can moderate posts and comments from other users",
+        "permissions": ["posts:others:delete", "comments:others:delete"]
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dustinpoissant/kempo-blog.git"
+  },
+  "dependencies": {
+    "marked": "^18.0.1"
+  }
+}

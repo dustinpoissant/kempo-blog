@@ -1,0 +1,19 @@
+<!--
+template: default
+-->
+<page title="Edit Post" requires-auth="true">
+<content>
+  <script type="module" src="/blog/posts/components/PostEdit.js"></script>
+  <h1>Edit Post</h1>
+  <k-blog-post-edit id="post-edit"></k-blog-post-edit>
+  <script type="module">
+    const params = new URLSearchParams(location.search);
+    const path = params.get('path');
+    if(path){
+      document.getElementById('post-edit').setAttribute('path', path);
+    } else {
+      document.getElementById('post-edit').innerHTML = '<p class="tc-muted">No post specified.</p>';
+    }
+  </script>
+</content>
+</page>
