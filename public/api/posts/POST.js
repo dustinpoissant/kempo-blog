@@ -9,7 +9,7 @@ export default async (request, response) => {
   const [sessionError, session] = await getSession({ token });
   if(sessionError) return response.status(401).json({ error: 'Authentication required' });
 
-  const [, canCreate] = await currentUserHasPermission(token, 'kempo-blog:posts:create');
+  const [, canCreate] = await currentUserHasPermission(token, 'posts:create');
   if(!canCreate) return response.status(403).json({ error: 'Insufficient permissions' });
 
   const { name, content, abstract, tags, isPublic, status, category, commentsEnabled, approvedCommentsOnly } = request.body;

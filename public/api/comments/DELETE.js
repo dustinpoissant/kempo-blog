@@ -24,7 +24,7 @@ export default async (request, response) => {
 
   const isOwner = existing.userid === sessionData.user.id;
   if(isOwner){
-    const [, canOwnDelete] = await currentUserHasPermission(token, 'kempo-blog:comments:own:delete');
+    const [, canOwnDelete] = await currentUserHasPermission(token, 'comments:own:delete');
     if(!canOwnDelete){
       return response.status(403).json({ error: 'You do not have permission to delete this comment' });
     }
@@ -32,12 +32,12 @@ export default async (request, response) => {
     const [postErr, post] = await getPost(existing.post);
     const isPostAuthor = !postErr && post?.author === sessionData.user.id;
     if(isPostAuthor){
-      const [, canPostAuthorDelete] = await currentUserHasPermission(token, 'kempo-blog:comments:post_author:delete');
+      const [, canPostAuthorDelete] = await currentUserHasPermission(token, 'comments:post_author:delete');
       if(!canPostAuthorDelete){
         return response.status(403).json({ error: 'You do not have permission to delete this comment' });
       }
     } else {
-      const [, canOthersDelete] = await currentUserHasPermission(token, 'kempo-blog:comments:others:delete');
+      const [, canOthersDelete] = await currentUserHasPermission(token, 'comments:others:delete');
       if(!canOthersDelete){
         return response.status(403).json({ error: 'You do not have permission to delete this comment' });
       }

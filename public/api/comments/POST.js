@@ -9,7 +9,7 @@ export default async (request, response) => {
     return response.status(401).json({ error: 'Authentication required' });
   }
 
-  const [, canComment] = await currentUserHasPermission(token, 'kempo-blog:comments:create');
+  const [, canComment] = await currentUserHasPermission(token, 'comments:create');
   if(!canComment){
     return response.status(403).json({ error: 'You do not have permission to comment' });
   }

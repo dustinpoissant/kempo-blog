@@ -4,7 +4,7 @@ import { deleteComment } from '/blog/posts/sdk.js';
 
 export default class BlogPostComment extends ShadowComponent {
   static properties = {
-    comment: { state: true },
+    comment: { type: Object },
     currentUserId: { type: String, attribute: 'current-user-id', reflect: true },
     canModerate: { type: Boolean, attribute: 'can-moderate', reflect: true },
     deleted: { state: true },
@@ -37,7 +37,7 @@ export default class BlogPostComment extends ShadowComponent {
           <div class="d-f g-sm tc-muted small">
             <k-blog-post-author author="${c.userid}"></k-blog-post-author>
             <span>&bull;</span>
-            <k-timestamp value="${c.created}"></k-timestamp>
+            <k-timestamp timestamp="${c.created}"></k-timestamp>
           </div>
           ${canDelete ? html`<button class="btn ghost small" @click=${this.onDelete}><k-icon name="delete"></k-icon></button>` : ''}
         </div>

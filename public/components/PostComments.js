@@ -38,6 +38,11 @@ export default class BlogPostComments extends ShadowComponent {
   }
 
   async init(){
+    if(!this.post){
+      // No post ID provided; do not guess from URL. Comments will not load.
+      this.loading = false;
+      return;
+    }
     await this.loadUser();
     await this.load();
   }
@@ -52,8 +57,8 @@ export default class BlogPostComments extends ShadowComponent {
       const permRes = await fetch('/kempo/api/user/current/permissions');
       if(permRes.ok){
         const { permissions } = await permRes.json();
-        this.canComment = permissions.includes('kempo-blog:comments:create');
-        this.canModerate = permissions.includes('kempo-blog:comments:others:delete');
+        this.canComment = permissions.some(p => p === 'kempo-blog:comments:create' || p === 'comments:create');
+        this.canModerate = permissions.some(p => p === 'kempo-blog:comments:others:delete' || p === 'comments:others:delete');
       }
     } catch {}
   }
@@ -71,15 +76,15 @@ export default class BlogPostComments extends ShadowComponent {
     this.total = data?.total || 0;
   }
 
-  onCommentAdded(e){
+  onCommentAdded = e => {
     this.comments = [e.detail.comment, ...this.comments];
     this.total++;
-  }
+  };
 
-  onCommentDeleted(e){
+  onCommentDeleted = e => {
     this.comments = this.comments.filter(c => c.id !== e.detail.id);
     this.total--;
-  }
+  };
 
   prev(){
     this.offset = Math.max(0, this.offset - this['page-size']);

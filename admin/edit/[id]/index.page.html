@@ -10,9 +10,14 @@ locked: true
   </div>
   <k-blog-post-edit id="post-edit"></k-blog-post-edit>
   <script type="module">
-    const path = new URLSearchParams(location.search).get('path');
-    if(path){
-      document.getElementById('post-edit').setAttribute('path', path);
+    import { getPostById } from '/blog/sdk.js';
+    const postId = location.pathname.split('/').filter(Boolean).pop();
+    const [err, data] = await getPostById(postId);
+    const el = document.getElementById('post-edit');
+    if(err){
+      el.innerHTML = `<p class="tc-error">${err.msg}</p>`;
+    } else {
+      el.setAttribute('path', data.post.path);
     }
   </script>
 </content>

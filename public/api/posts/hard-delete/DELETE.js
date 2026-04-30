@@ -6,7 +6,7 @@ const ROOT_DIR = join(process.cwd(), 'public');
 
 export default async (request, response) => {
   const token = request.cookies.session_token;
-  const [, canHardDelete] = await currentUserHasPermission(token, 'kempo-blog:posts:delete');
+  const [, canHardDelete] = await currentUserHasPermission(token, 'posts:delete');
   if(!canHardDelete) return response.status(403).json({ error: 'Insufficient permissions' });
 
   const path = request.body?.path || request.query.path;

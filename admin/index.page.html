@@ -10,54 +10,98 @@ locked: true
   <script type="module" src="/kempo-ui/components/tableControls/LastPage.js"></script>
   <script type="module" src="/kempo-ui/components/tableControls/PageSelect.js"></script>
   <script type="module" src="/kempo-ui/components/tableControls/PageSize.js"></script>
+  <script type="module" src="/admin/components/TableRowLink.js"></script>
+  <script type="module" src="/kempo-ui/components/Icon.js"></script>
+  <script type="module">
+    import TableControl from '/kempo-ui/components/tableControls/TableControl.js';
+    import { html } from '/kempo-ui/lit-all.min.js';
+
+    class BlogPostViewLink extends TableControl {
+      static get properties() {
+        return { fieldName: { type: String, attribute: 'field-name' } };
+      }
+
+      constructor() {
+        super({ maxWidth: 40 });
+        this.fieldName = 'postUrl';
+      }
+
+      open = () => {
+        if(!this.record) return;
+        const url = this.record[this.fieldName];
+        if(url) window.open(url, '_blank', 'noopener,noreferrer');
+      };
+
+      render() {
+        return html`<button class="no-btn icon-btn" @click="${this.open}"><k-icon name="open_in_new"></k-icon></button>`;
+      }
+    }
+
+    customElements.define('blog-post-view-link', BlogPostViewLink);
+  </script>
   <div class="d-f mb" style="align-items: center; gap: var(--spacer)">
     <h1 class="flex mb0">Blog Posts</h1>
     <a href="/admin/extension/kempo-blog/create" class="btn">New Post</a>
   </div>
-  <k-table id="posts-table">
-    <k-first-page slot="controls"></k-first-page>
-    <k-prev-page slot="controls"></k-prev-page>
-    <k-next-page slot="controls"></k-next-page>
-    <k-last-page slot="controls"></k-last-page>
-    <k-page-select slot="controls"></k-page-select>
-    <k-page-size slot="controls"></k-page-size>
-    <table>
-      <thead>
-        <tr>
-          <th>Title / Path</th>
-          <th>Author</th>
-          <th>Status</th>
-          <th>Created</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="posts-body">
-        <tr><td colspan="5" class="tc-muted">Loading...</td></tr>
-      </tbody>
-    </table>
+  <k-table
+    id="posts-table"
+    enable-pages
+    page-size="25"
+    page-size-options="[10,25,50,100]"
+    placeholder="No posts yet."
+  >
+    <blog-post-view-link slot="before" field-name="postUrl"></blog-post-view-link>
+    <admin-table-row-link
+      slot="after"
+      url-pattern="/admin/extension/kempo-blog/edit/{postId}"
+      field-name="postId"
+    >
+      <k-icon name="edit"></k-icon>
+    </admin-table-row-link>
+    <div class="d-f full" style="align-items: center;">
+      <div>
+        <k-tc-first-page></k-tc-first-page>
+        <k-tc-prev-page></k-tc-prev-page>
+        <k-tc-next-page></k-tc-next-page>
+        <k-tc-last-page></k-tc-last-page>
+      </div>
+      <div class="flex"></div>
+      <div><k-tc-page-select></k-tc-page-select></div>
+      <div class="flex"></div>
+      <div><k-tc-page-size></k-tc-page-size></div>
+    </div>
   </k-table>
   <script type="module">
-    import { getPosts, softDeletePost } from '/blog/posts/sdk.js';
-    const tbody = document.getElementById('posts-body');
+    import { getPosts } from '/blog/sdk.js';
 
-    const load = async () => {
-      const [err, data] = await getPosts({ limit: 50, offset: 0, status: undefined });
-      if(err){ tbody.innerHTML = `<tr><td colspan="5" class="tc-error">${err.msg}</td></tr>`; return; }
-      if(!data.posts.length){ tbody.innerHTML = '<tr><td colspan="5" class="tc-muted">No posts yet.</td></tr>'; return; }
-      tbody.innerHTML = data.posts.map(p => `
-        <tr>
-          <td><a href="/admin/extension/kempo-blog/edit?path=${encodeURIComponent(p.path)}">${p.name || p.path}</a></td>
-          <td>${p.author}</td>
-          <td>${p.status}${p.public ? '' : ' (private)'}</td>
-          <td>${new Date(p.created).toLocaleDateString()}</td>
-          <td>
-            <a href="/admin/extension/kempo-blog/edit?path=${encodeURIComponent(p.path)}" class="btn small ghost">Edit</a>
-          </td>
-        </tr>
-      `).join('');
-    };
+    await window.customElements.whenDefined('k-table');
 
-    load();
+    const table = document.getElementById('posts-table');
+    const [err, data] = await getPosts({ limit: 100, offset: 0 });
+    if(err){
+      table.setAttribute('placeholder', err.msg);
+    } else {
+      const records = data.posts.map(p => {
+        const postId = p.path.split('/').pop().split('-')[0];
+        return {
+          ...p,
+          postId,
+          postUrl: `/${p.path.replace('.page.html', '')}`,
+          displayName: p.name || p.path.split('/').pop().replace('.page.html', ''),
+          statusDisplay: `${p.status}${p.public ? '' : ' (private)'}`,
+          createdDisplay: new Date(p.created).toLocaleDateString()
+        };
+      });
+      table.setData({
+        records,
+        fields: [
+          { name: 'displayName', label: 'Title', size: 300 },
+          { name: 'author', label: 'Author', size: 150 },
+          { name: 'statusDisplay', label: 'Status', size: 130 },
+          { name: 'createdDisplay', label: 'Created', size: 120 }
+        ]
+      });
+    }
   </script>
 </content>
 </page>

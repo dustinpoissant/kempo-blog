@@ -23,7 +23,7 @@ export default async (request, response) => {
 
   const isOwner = existing.userid === sessionData.user.id;
   if(!isOwner){
-    const [, canEdit] = await currentUserHasPermission(token, 'kempo-blog:comments:update');
+    const [, canEdit] = await currentUserHasPermission(token, 'comments:update');
     if(!canEdit){
       return response.status(403).json({ error: 'You do not have permission to edit this comment' });
     }

@@ -1,5 +1,7 @@
 import ShadowComponent from '/kempo-ui/components/ShadowComponent.js';
 import { html } from '/kempo-ui/lit-all.min.js';
+import '/kempo-ui/components/Timestamp.js';
+import './PostAuthor.js';
 
 export const formatDate = ts => ts ? new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : '';
 
@@ -23,7 +25,7 @@ export default class BlogPostSummary extends ShadowComponent {
         <div class="d-f g-sm tc-muted small mb0">
           <span><k-blog-post-author author="${p.author}"></k-blog-post-author></span>
           <span>&bull;</span>
-          <k-timestamp value="${p.created}"></k-timestamp>
+          <k-timestamp timestamp="${p.created}"></k-timestamp>
         </div>
         ${tags.length ? html`<div class="mt0"><k-blog-post-tags tags="${tags.join(', ')}"></k-blog-post-tags></div>` : ''}
         ${p.status === 'draft' ? html`<span class="badge">Draft</span>` : ''}

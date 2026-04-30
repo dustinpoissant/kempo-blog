@@ -17,8 +17,8 @@ export default async (request, response) => {
   if(fetchError) return response.status(fetchError.code).json({ error: fetchError.msg });
 
   const isOwner = existing.author === session.user.id;
-  const [, canEditOwn] = await currentUserHasPermission(token, 'kempo-blog:posts:own:update');
-  const [, canEditOthers] = await currentUserHasPermission(token, 'kempo-blog:posts:others:update');
+  const [, canEditOwn] = await currentUserHasPermission(token, 'posts:own:update');
+  const [, canEditOthers] = await currentUserHasPermission(token, 'posts:others:update');
 
   if(!((isOwner && canEditOwn) || canEditOthers)){
     return response.status(403).json({ error: 'Insufficient permissions' });

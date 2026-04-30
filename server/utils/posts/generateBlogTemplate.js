@@ -6,14 +6,15 @@ const BLOG_TEMPLATE_BODY = `  <article>
       <div class="d-f g-sm tc-muted small">
         <span>By <k-blog-post-author author="{{author}}"></k-blog-post-author></span>
         <span>&bull;</span>
-        <k-timestamp>{{created}}</k-timestamp>
+        <k-timestamp timestamp="{{created}}"></k-timestamp>
       </div>
       <k-blog-post-tags tags="{{tags}}"></k-blog-post-tags>
     </header>
-    <script type="module" src="/blog/posts/components/PostAuthor.js"></script>
-    <script type="module" src="/blog/posts/components/PostTags.js"></script>
-    <script type="module" src="/blog/posts/components/PostComments.js"></script>
-    <script type="module" src="/blog/posts/components/AddPostComment.js"></script>
+    <script type="module" src="/kempo-ui/components/Timestamp.js"></script>
+    <script type="module" src="/blog/components/PostAuthor.js"></script>
+    <script type="module" src="/blog/components/PostTags.js"></script>
+    <script type="module" src="/blog/components/PostComments.js"></script>
+    <script type="module" src="/blog/components/AddPostComment.js"></script>
     <location />
     <section class="mt">
       <k-blog-post-comments></k-blog-post-comments>

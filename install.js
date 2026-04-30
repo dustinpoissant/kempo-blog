@@ -1,9 +1,19 @@
 import { join } from 'path';
-import { getUsers, addUserToGroup, getSetting } from 'kempo/server/sdk.js';
+import { getUsers, addUserToGroup, getSetting, createAdminGlobalContent } from 'kempo/server/sdk.js';
 import generateBlogTemplate from './server/utils/posts/generateBlogTemplate.js';
 
 export default async () => {
   const rootDir = join(process.cwd(), 'public');
+  const adminDir = join(process.cwd(), 'node_modules', 'kempo', 'dist', 'admin');
+
+  await createAdminGlobalContent({
+    adminDir,
+    name: 'kempo-blog-nav',
+    location: 'admin-nav-extensions',
+    owner: 'kempo-blog',
+    priority: 0,
+    markup: '<k-aside-item icon="article" href="/admin/extension/kempo-blog/" no-expand>Blog</k-aside-item>',
+  });
 
   const [, templateResult] = await generateBlogTemplate({ rootDir });
   if(templateResult) console.log('[kempo-blog] Blog template created/updated.');

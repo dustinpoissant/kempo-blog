@@ -1,4 +1,4 @@
-const BASE = '/blog/posts/api';
+const BASE = '/blog/api';
 
 const req = async (method, path, data) => {
   const opts = { method, headers: {} };
@@ -31,6 +31,9 @@ export const getPosts = (params = {}) =>
 
 export const getPost = path =>
   req('GET', `${BASE}/posts${buildQuery({ path })}`);
+
+export const getPostById = postId =>
+  req('GET', `${BASE}/posts${buildQuery({ postId })}`);
 
 export const createPost = data =>
   req('POST', `${BASE}/posts`, data);

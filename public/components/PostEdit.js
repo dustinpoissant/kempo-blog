@@ -1,6 +1,7 @@
 import ShadowComponent from '/kempo-ui/components/ShadowComponent.js';
 import { html } from '/kempo-ui/lit-all.min.js';
 import { getPost, updatePost, softDeletePost } from '/blog/posts/sdk.js';
+import '/kempo-ui/components/MarkdownEditor.js';
 
 export default class BlogPostEdit extends ShadowComponent {
   static properties = {
@@ -48,7 +49,7 @@ export default class BlogPostEdit extends ShadowComponent {
     this.status = p.status || 'draft';
     this.isPublic = p.public !== false;
     this.tags = Array.isArray(p.tags) ? p.tags.join(', ') : '';
-    this.content = p.content || '';
+    this.content = p.contents?.find(c => c.location === 'default')?.content || '';
   }
 
   async onSave(e){

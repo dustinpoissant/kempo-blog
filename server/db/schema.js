@@ -8,7 +8,8 @@ export const kempoBlogCategory = pgTable('kempoBlogCategory', {
 });
 
 export const kempoBlogPost = pgTable('kempoBlogPost', {
-  path: text('path').primaryKey(),
+  id: text('id').primaryKey(), // 8-digit unique string
+  path: text('path').notNull(),
   created: timestamp('created').notNull(),
   updated: timestamp('updated').notNull(),
   author: text('author').notNull(),
@@ -25,7 +26,7 @@ export const kempoBlogTag = pgTable('kempoBlogTag', {
 
 export const blogComment = pgTable('blogComment', {
   id: text('id').primaryKey(),
-  post: text('post').notNull(),
+  post: text('post').notNull(), // will now store post.id
   parent: text('parent'),
   userid: text('userid').notNull(),
   created: timestamp('created').notNull(),

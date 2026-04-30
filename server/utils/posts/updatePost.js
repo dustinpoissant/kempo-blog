@@ -1,4 +1,5 @@
 import { readFile, writeFile } from 'fs/promises';
+import { existsSync } from 'fs';
 import { join } from 'path';
 import crypto from 'crypto';
 import { getPage } from 'kempo/server/sdk.js';
