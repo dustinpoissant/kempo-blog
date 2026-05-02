@@ -7,7 +7,7 @@
   "type": "module",
   "main": "sdk.js",
   "scripts": {
-    "build": "node src/build.js",
+    "build": "node scripts/build.js",
     "test": "npx kempo-testing"
   },
   "kempo": {
