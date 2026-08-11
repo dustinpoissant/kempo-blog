@@ -8,7 +8,7 @@
   "main": "sdk.js",
   "scripts": {
     "build": "node scripts/build.js",
-    "test": "npx kempo-testing"
+    "test": "kempo-test -n"
   },
   "kempo": {
     "public-scope": "blog"
@@ -31,6 +31,7 @@
     "kempo-ui": ">=0.4.38"
   },
   "devDependencies": {
-    "kempo": "file:../kempo"
+    "kempo": "file:../kempo",
+    "kempo-testing-framework": "^1.4.7"
   }
 }

@@ -1,0 +1,55 @@
+name: Run Unit Tests
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  test:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+      # kempo is a peer dependency, linked in development as `file:../kempo`. npm creates a dangling
+      # symlink rather than failing when that path is absent, so the sibling has to be checked out
+      # or the install would look fine and every import of kempo/** would fail at test time.
+      # Using the checkout instead of the published release also means a change here is tested
+      # against the host it is being written for, which is where these two repos break each other.
+      - uses: actions/checkout@v4
+        with:
+          path: kempo-blog
+
+      - uses: actions/checkout@v4
+        with:
+          repository: dustinpoissant/kempo
+          path: kempo
+
+      # Reached transitively: kempo/server/sdk.js re-exports sendEmailFromTemplate, which imports
+      # kempo-server/templating. Without this checkout kempo's own file: link to it dangles and
+      # every module here that touches the host SDK fails to import.
+      - uses: actions/checkout@v4
+        with:
+          repository: dustinpoissant/kempo-server
+          path: kempo-server
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install host
+        run: npm install --no-audit --no-fund
+        working-directory: kempo
+
+      - name: Install
+        run: npm install --no-audit --no-fund
+        working-directory: kempo-blog
+
+      # No database or RESEND_API_KEY required: both clients are constructed lazily.
+      - name: Run Unit Tests
+        run: npm test
+        working-directory: kempo-blog
