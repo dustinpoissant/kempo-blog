@@ -13,7 +13,7 @@ const enrichPostName = async post => {
 
 export default async (request, response) => {
   const token = request.cookies.session_token;
-  const { path, postId, limit, offset, status, author, category, tag } = request.query;
+  const { path, postId, limit, offset, status, author, category, tag, createdAfter, createdBefore } = request.query;
 
   if(postId){
     const [, session] = await getSession({ token });
@@ -52,7 +52,7 @@ export default async (request, response) => {
   const userId = session?.user?.id;
   const [, canReadPrivate] = await currentUserHasPermission(token, 'posts:read');
 
-  const resolvedStatus = status || 'published';
+  const resolvedStatus = status || (canReadPrivate ? undefined : 'published');
   const includePrivate = !!canReadPrivate || (userId && author === userId);
 
   const [error, data] = await getPosts({
@@ -62,6 +62,8 @@ export default async (request, response) => {
     author,
     category,
     tag,
+    createdAfter,
+    createdBefore,
     includePrivate: !!includePrivate,
   });
 

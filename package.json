@@ -23,7 +23,14 @@
     "url": "git+https://github.com/dustinpoissant/kempo-blog.git"
   },
   "dependencies": {
-    "kempo-blog": "^0.1.0",
+    "drizzle-orm": "^0.44.7",
     "marked": "^18.0.1"
+  },
+  "peerDependencies": {
+    "kempo": ">=4.2.20",
+    "kempo-ui": ">=0.4.38"
+  },
+  "devDependencies": {
+    "kempo": "file:../kempo"
   }
 }

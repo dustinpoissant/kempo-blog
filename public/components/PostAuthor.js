@@ -20,10 +20,10 @@ export default class BlogPostAuthor extends ShadowComponent {
 
   async loadAuthor(){
     try {
-      const res = await fetch(`/kempo/api/user/${this.author}`);
+      const res = await fetch(`/kempo/api/user/${this.author}/name`);
       if(res.ok){
-        const data = await res.json();
-        this.name = data.user?.name || this.author;
+        const { name } = await res.json();
+        this.name = name || this.author;
       }
     } catch {
       this.name = this.author;
@@ -31,8 +31,9 @@ export default class BlogPostAuthor extends ShadowComponent {
   }
 
   render(){
-    return html`<a href="/blog/posts/author/${this.author}">${this.name || this.author}</a>`;
+    return html`<a href="/blog/author/${this.author}">${this.name || this.author}</a>`;
   }
 }
 
 customElements.define('k-blog-post-author', BlogPostAuthor);
+

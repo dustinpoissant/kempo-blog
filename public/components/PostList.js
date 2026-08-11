@@ -1,6 +1,7 @@
 import ShadowComponent from '/kempo-ui/components/ShadowComponent.js';
 import { html } from '/kempo-ui/lit-all.min.js';
-import { getPosts } from '/blog/posts/sdk.js';
+import '/kempo-ui/components/Pagination.js';
+import { getPosts } from '/blog/sdk.js';
 
 export default class BlogPostList extends ShadowComponent {
   static properties = {
@@ -8,6 +9,8 @@ export default class BlogPostList extends ShadowComponent {
     author: { type: String, reflect: true },
     category: { type: String, reflect: true },
     tag: { type: String, reflect: true },
+    'created-after': { type: String, reflect: true },
+    'created-before': { type: String, reflect: true },
     'page-size': { type: Number, reflect: true },
     posts: { state: true },
     total: { state: true },
@@ -22,7 +25,9 @@ export default class BlogPostList extends ShadowComponent {
     this.author = '';
     this.category = '';
     this.tag = '';
-    this['page-size'] = 10;
+    this['created-after'] = '';
+    this['created-before'] = '';
+    this['page-size'] = 25;
     this.posts = [];
     this.total = 0;
     this.offset = 0;
@@ -32,7 +37,18 @@ export default class BlogPostList extends ShadowComponent {
 
   connectedCallback(){
     super.connectedCallback();
+    this.connected = true;
     this.load();
+  }
+
+  updated(changed){
+    super.updated?.(changed);
+    if(!this.connected) return;
+    const filterProps = ['tag', 'author', 'category', 'status', 'created-after', 'created-before'];
+    if(filterProps.some(p => changed.has(p) && changed.get(p) !== undefined)){
+      this.offset = 0;
+      this.load();
+    }
   }
 
   async load(){
@@ -45,6 +61,8 @@ export default class BlogPostList extends ShadowComponent {
       author: this.author || undefined,
       category: this.category || undefined,
       tag: this.tag || undefined,
+      createdAfter: this['created-after'] || undefined,
+      createdBefore: this['created-before'] || undefined,
     };
     const [err, data] = await getPosts(params);
     this.loading = false;
@@ -53,32 +71,38 @@ export default class BlogPostList extends ShadowComponent {
     this.total = data.total;
   }
 
-  prev(){
-    this.offset = Math.max(0, this.offset - this['page-size']);
+  handlePageChange(e){
+    const { currentPage, itemsPerPage } = e.detail;
+    const offset = (currentPage - 1) * itemsPerPage;
+    if(itemsPerPage === this['page-size'] && offset === this.offset) return;
+    this['page-size'] = itemsPerPage;
+    this.offset = offset;
     this.load();
-  }
-
-  next(){
-    this.offset += this['page-size'];
-    this.load();
+    this.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   render(){
     if(this.loading) return html`<k-spinner></k-spinner>`;
     if(this.error) return html`<p class="tc-muted">${this.error}</p>`;
     if(!this.posts.length) return html`<p class="tc-muted">No posts found.</p>`;
+    const page = Math.floor(this.offset / this['page-size']) + 1;
     return html`
       ${this.posts.map(p => {
         const el = document.createElement('k-blog-post-summary');
         el.post = p;
         return el;
       })}
-      <div class="d-f g-sm mt">
-        ${this.offset > 0 ? html`<button class="btn secondary" @click=${this.prev}>Previous</button>` : ''}
-        ${this.total > this.offset + this['page-size'] ? html`<button class="btn secondary" @click=${this.next}>Next</button>` : ''}
-      </div>
+      <k-pagination
+        style="margin-top: var(--spacer)"
+        controls="full"
+        .page=${page}
+        .totalItems=${this.total}
+        .itemsPerPage=${this['page-size']}
+        @page-change=${this.handlePageChange}
+      ></k-pagination>
     `;
   }
 }
 
 customElements.define('k-blog-post-list', BlogPostList);
+

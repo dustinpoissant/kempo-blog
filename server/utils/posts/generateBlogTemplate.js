@@ -17,7 +17,7 @@ const BLOG_TEMPLATE_BODY = `  <article>
     <script type="module" src="/blog/components/AddPostComment.js"></script>
     <location />
     <section class="mt">
-      <k-blog-post-comments></k-blog-post-comments>
+      <k-blog-post-comments post="{{post}}" comments-enabled="{{comments}}" approved-only="{{approved_comments_only}}"></k-blog-post-comments>
     </section>
   </article>`;
 

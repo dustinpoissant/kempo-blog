@@ -13,7 +13,7 @@ const slugify = name => name
   .replace(/-+/g, '-')
   .replace(/^-|-$/g, '');
 
-const buildPageFile = ({ name, author, authorId, nowISO, commentsEnabled, isPublic, status, approvedCommentsOnly, category, tags, content, abstract, template }) => {
+const buildPageFile = ({ name, author, authorId, postId, nowISO, commentsEnabled, isPublic, status, approvedCommentsOnly, category, tags, content, abstract, template }) => {
   const tagsStr = tags.length ? tags.join(', ') : '';
   const frontmatterLines = [
     '<!--',
@@ -23,6 +23,7 @@ const buildPageFile = ({ name, author, authorId, nowISO, commentsEnabled, isPubl
     `  created: ${nowISO}`,
     `  updated: ${nowISO}`,
     `  locked: true`,
+    `  hidden: false`,
     `  comments: ${commentsEnabled}`,
     `  public: ${isPublic}`,
     `  status: ${status}`,
@@ -31,7 +32,7 @@ const buildPageFile = ({ name, author, authorId, nowISO, commentsEnabled, isPubl
   if(category) frontmatterLines.push(`  category: ${category}`);
   frontmatterLines.push('-->');
 
-  const attrParts = [`template="${template}" title="${name}" author="${author}"`];
+  const attrParts = [`template="${template}" title="${name}" author="${authorId}"`];
   attrParts.push(`created="${nowISO}" updated="${nowISO}"`);
   attrParts.push(`public="${isPublic}" status="${status}"`);
   attrParts.push(`approved_comments_only="${approvedCommentsOnly}"`);
@@ -39,14 +40,14 @@ const buildPageFile = ({ name, author, authorId, nowISO, commentsEnabled, isPubl
   if(category) attrParts.push(`category="${category}"`);
 
   const contentBlocks = [
-    `<content>\n${content || ''}\n</content>`,
+    `<content>\n${content}\n</content>`,
     ...(abstract ? [`<content location="abstract">\n${abstract}\n</content>`] : []),
   ].join('\n');
 
   return `${frontmatterLines.join('\n')}\n<page ${attrParts.join(' ')}>\n${contentBlocks}\n</page>\n`;
 };
 
-export default async ({ rootDir, name, authorId, author, category = null, isPublic = true, status = 'draft', content = '', abstract = '', tags = [], commentsEnabled = true, approvedCommentsOnly = false, template = 'blog/blog-post' }) => {
+export default async ({ rootDir, name, authorId, author, category = null, isPublic = true, status = 'draft', content = '', abstract = '', tags = [], commentsEnabled = true, approvedCommentsOnly = false, template = 'post/blog-post' }) => {
   if(!rootDir) return [{ code: 400, msg: 'Root directory is required' }, null];
   if(!name) return [{ code: 400, msg: 'Post name is required' }, null];
   if(!authorId) return [{ code: 400, msg: 'Author ID is required' }, null];
@@ -56,21 +57,22 @@ export default async ({ rootDir, name, authorId, author, category = null, isPubl
 
   const postId = crypto.randomBytes(4).toString('hex');
   const fileName = `${postId}-${slug}.page.html`;
-  const blogDir = join(rootDir, 'blog');
-  const filePath = join(blogDir, fileName);
-  const path = `blog/${fileName}`;
+  const postDir = join(rootDir, 'post');
+  const filePath = join(postDir, fileName);
+  const path = `post/${fileName}`;
 
   if(existsSync(filePath)) return [{ code: 409, msg: 'A post with this name already exists' }, null];
 
   const now = new Date();
   const nowISO = now.toISOString();
-  const pageContent = buildPageFile({ name, author: author || authorId, authorId, nowISO, commentsEnabled, isPublic, status, approvedCommentsOnly, category, tags, content, abstract, template });
+  const pageContent = buildPageFile({ name, author: author || authorId, authorId, postId, nowISO, commentsEnabled, isPublic, status, approvedCommentsOnly, category, tags, content, abstract, template });
 
-  await mkdir(blogDir, { recursive: true });
+  await mkdir(postDir, { recursive: true });
   await writeFile(filePath, pageContent, 'utf-8');
 
   try {
     await db.insert(kempoBlogPost).values({
+      id: postId,
       path,
       created: now,
       updated: now,

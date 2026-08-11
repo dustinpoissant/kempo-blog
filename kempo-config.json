@@ -3,7 +3,8 @@
   "public-scope": "blog/posts",
   "schema": "./server/db/schema.js",
   "hooks": {
-    "user:registered": "hooks/user-registered.js"
+    "user:registered": "./hooks/user-registered.js",
+    "middleware:before_page": "./hooks/before-page-guard.js"
   },
   "permissions": [
     {

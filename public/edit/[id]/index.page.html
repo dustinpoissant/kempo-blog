@@ -1,0 +1,99 @@
+<!--
+locked: true
+template: default
+-->
+<page title="Edit Post">
+<content>
+  <script type="module" src="/blog/components/PostEdit.js"></script>
+  <script type="module" src="/kempo-ui/components/Icon.js"></script>
+  <div class="d-f mb">
+    <div class="btn-grp mrh mb">
+      <a href="/blog" class="btn">
+        <k-icon name="arrow" direction="left"></k-icon> Blog
+      </a>
+      <a id="view-post-link" href="#" class="btn" style="display: none;">
+        <k-icon name="visibility"></k-icon> View Post
+      </a>
+    </div>
+    <div class="flex"></div>
+    <div class="btn-grp mrh mb">
+      <button id="delete-btn" class="btn danger" style="display: none;">
+        <k-icon name="delete"></k-icon> Delete
+      </button>
+    </div>
+    <div class="btn-grp mrh mb">
+      <button id="reset-btn" class="btn">
+        <k-icon name="restart_alt"></k-icon> Reset
+      </button>
+      <button id="save-btn" class="btn primary">
+        <k-icon name="save"></k-icon> Save
+      </button>
+    </div>
+  </div>
+  <h1 class="mb">Edit Post</h1>
+  <k-blog-post-edit id="post-edit"></k-blog-post-edit>
+  <script>
+    const component = document.getElementById('post-edit');
+    const saveBtn = document.getElementById('save-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const deleteBtn = document.getElementById('delete-btn');
+    const viewPostLink = document.getElementById('view-post-link');
+    const pathParam = window.location.pathname.split('/').filter(Boolean).pop();
+    
+    if(pathParam && pathParam !== 'index.page.html') {
+      const postId = pathParam;
+      (async () => {
+        try {
+          const sessionRes = await fetch('/kempo/api/auth/session');
+          const response = await sessionRes.json();
+          const currentUserId = response.user?.id;
+          
+          const postsRes = await fetch(`/blog/api/posts?postId=${postId}`);
+          const postsData = await postsRes.json();
+          const post = postsData.post;
+          
+          if(!post) {
+            document.body.innerHTML = '<p>Post not found</p>';
+            return;
+          }
+          
+          if(currentUserId !== post.author) {
+            document.body.innerHTML = '<p>You are not authorized to edit this post.</p>';
+            return;
+          }
+          
+          saveBtn.disabled = true;
+          component.path = post.path;
+          component.post = post;
+          
+          const slug = post.path.replace('post/', '').replace('.page.html', '').replace(/^[^-]+-/, '');
+          viewPostLink.href = `/post/${post.id}-${slug}`;
+          viewPostLink.style.display = 'block';
+          
+          const checkDirty = () => {
+            const dirty = component.name !== component.post?.name || component.status !== component.post?.status || component.isPublic !== component.post?.public || JSON.stringify(component.tags.split(',').map(t => t.trim()).filter(Boolean)) !== JSON.stringify(component.post?.tags) || component.content !== (component.post?.contents?.find(c => c.location === 'default')?.content || '');
+            saveBtn.disabled = !dirty;
+          };
+          
+          component.addEventListener('change', checkDirty);
+          
+          const handleSave = () => component.submitForm?.() || component.save?.();
+          saveBtn.addEventListener('click', handleSave);
+          resetBtn.addEventListener('click', () => component.reset?.());
+          deleteBtn.addEventListener('click', () => component.delete?.());
+          
+          document.addEventListener('keydown', e => {
+            if((e.ctrlKey || e.metaKey) && e.key === 's'){
+              e.preventDefault();
+              handleSave();
+            }
+          });
+        } catch(e) {
+          console.error('Error loading post:', e);
+          document.body.innerHTML = '<p>Error loading post: ' + e.message + '</p>';
+        }
+      })();
+    }
+  </script>
+</content>
+</page>

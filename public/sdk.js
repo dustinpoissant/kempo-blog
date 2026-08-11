@@ -29,6 +29,9 @@ const buildQuery = params => {
 export const getPosts = (params = {}) =>
   req('GET', `${BASE}/posts${buildQuery(params)}`);
 
+export const getPostsCounts = () =>
+  req('GET', `${BASE}/posts/counts`);
+
 export const getPost = path =>
   req('GET', `${BASE}/posts${buildQuery({ path })}`);
 

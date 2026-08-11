@@ -1,7 +1,11 @@
 import ShadowComponent from '/kempo-ui/components/ShadowComponent.js';
 import { html } from '/kempo-ui/lit-all.min.js';
-import { getPost, updatePost, softDeletePost } from '/blog/posts/sdk.js';
+import Toast from '/kempo-ui/components/Toast.js';
+import { getPost, updatePost, softDeletePost } from '/blog/sdk.js';
 import '/kempo-ui/components/MarkdownEditor.js';
+import '/kempo-ui/components/Toggle.js';
+import '/kempo-ui/components/SegmentedControl.js';
+import '/kempo-ui/components/Tags.js';
 
 export default class BlogPostEdit extends ShadowComponent {
   static properties = {
@@ -14,8 +18,6 @@ export default class BlogPostEdit extends ShadowComponent {
     content: { state: true },
     loading: { state: true },
     submitting: { state: true },
-    error: { state: true },
-    success: { state: true },
   };
 
   constructor(){
@@ -29,8 +31,6 @@ export default class BlogPostEdit extends ShadowComponent {
     this.content = '';
     this.loading = true;
     this.submitting = false;
-    this.error = '';
-    this.success = '';
   }
 
   updated(changed){
@@ -42,7 +42,7 @@ export default class BlogPostEdit extends ShadowComponent {
     this.loading = true;
     const [err, data] = await getPost(this.path);
     this.loading = false;
-    if(err){ this.error = err.msg; return; }
+    if(err){ Toast.error(err.msg); return; }
     const p = data.post;
     this.post = p;
     this.name = p.name || '';
@@ -52,11 +52,49 @@ export default class BlogPostEdit extends ShadowComponent {
     this.content = p.contents?.find(c => c.location === 'default')?.content || '';
   }
 
-  async onSave(e){
+  /*
+    Event Handlers
+  */
+  saveHandler(e){
     e.preventDefault();
+    this.save();
+  }
+
+  nameInputHandler(e){
+    this.name = e.target.value;
+    this.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  statusChangeHandler(e){
+    this.status = e.target.value;
+    this.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  publicChangeHandler(e){
+    this.isPublic = e.target.checked;
+    this.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  tagsInputHandler(e){
+    this.tags = e.detail?.newValue ?? this.tags;
+    this.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  contentChangeHandler(e){
+    this.content = e.detail?.value ?? this.content;
+    this.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  deleteHandler(){
+    if(!confirm('Delete this post? It will be disabled but not permanently removed.')) return;
+    this.delete();
+  }
+
+  /*
+    Methods
+  */
+  async save(){
     this.submitting = true;
-    this.error = '';
-    this.success = '';
     const [err] = await updatePost({
       path: this.path,
       name: this.name || undefined,
@@ -66,51 +104,47 @@ export default class BlogPostEdit extends ShadowComponent {
       content: this.content,
     });
     this.submitting = false;
-    if(err){ this.error = err.msg; return; }
-    this.success = 'Post saved.';
+    if(err){ Toast.error(err.msg); return; }
+    await this.load();
+    Toast.success('Post saved.');
   }
 
-  async onDelete(){
-    if(!confirm('Delete this post? It will be disabled but not permanently removed.')) return;
+  async delete(){
     const [err] = await softDeletePost(this.path);
-    if(err){ alert(err.msg); return; }
-    window.location.href = '/blog/posts';
+    if(err){ Toast.error(err.msg); return; }
+    window.location.href = '/admin/extension/kempo-blog/';
+  }
+
+  reset(){
+    this.load();
   }
 
   render(){
     if(this.loading) return html`<k-spinner></k-spinner>`;
     return html`
-      <form @submit=${this.onSave}>
+      <form @submit=${this.saveHandler}>
         <div class="mb">
           <label>Post Name / Title</label>
-          <input class="w100" type="text" .value=${this.name} @input=${e => { this.name = e.target.value; }}>
+          <input class="w100" type="text" .value=${this.name} @input=${this.nameInputHandler}>
         </div>
         <div class="mb">
           <label>Status</label>
-          <select class="w100" .value=${this.status} @change=${e => { this.status = e.target.value; }}>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-          </select>
-        </div>
-        <div class="mb d-f g-sm">
-          <input type="checkbox" id="is-public" .checked=${this.isPublic} @change=${e => { this.isPublic = e.target.checked; }}>
-          <label for="is-public">Public</label>
+          <k-segmented-control .value=${this.status} @change=${this.statusChangeHandler}>
+            <k-sc-option value="published">Published</k-sc-option>
+            <k-sc-option value="draft">Draft</k-sc-option>
+            <k-sc-option value="disabled">Disabled</k-sc-option>
+          </k-segmented-control>
         </div>
         <div class="mb">
-          <label>Tags (comma-separated)</label>
-          <input class="w100" type="text" .value=${this.tags} @input=${e => { this.tags = e.target.value; }}>
+          <k-toggle .checked=${this.isPublic} @change=${this.publicChangeHandler}>Public</k-toggle>
         </div>
         <div class="mb">
-          <label>Content</label>
-          <k-markdown-editor .value=${this.content} @change=${e => { this.content = e.detail?.value ?? this.content; }}></k-markdown-editor>
+          <label>Tags</label>
+          <k-tags .value=${this.tags} @change=${this.tagsInputHandler}></k-tags>
         </div>
-        ${this.error ? html`<p class="tc-error small">${this.error}</p>` : ''}
-        ${this.success ? html`<p class="tc-success small">${this.success}</p>` : ''}
-        <div class="d-f g-sm">
-          <button class="btn" type="submit" ?disabled=${this.submitting}>
-            ${this.submitting ? html`<k-spinner small></k-spinner>` : 'Save'}
-          </button>
-          <button class="btn danger ghost" type="button" @click=${this.onDelete}>Delete Post</button>
+        <div class="mb">
+          <h3 class="mb0">Content</h3>
+          <k-markdown-editor style="--height: 600px; --min-height: 15rem; --max-height: 75vh" .value=${this.content} @change=${this.contentChangeHandler} controls="minimal"></k-markdown-editor>
         </div>
       </form>
     `;
@@ -118,3 +152,4 @@ export default class BlogPostEdit extends ShadowComponent {
 }
 
 customElements.define('k-blog-post-edit', BlogPostEdit);
+

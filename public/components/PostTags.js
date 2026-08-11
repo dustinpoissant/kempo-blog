@@ -23,7 +23,7 @@ export default class BlogPostTags extends ShadowComponent {
     return html`
       <div class="d-f g-sm" style="flex-wrap:wrap">
         ${tags.map(tag => html`
-          <a href="/blog/posts?tag=${encodeURIComponent(tag)}" class="badge pill">${tag}</a>
+          <a href="/blog?tags=${encodeURIComponent(tag)}" class="badge pill">${tag}</a>
         `)}
       </div>
     `;
@@ -31,3 +31,4 @@ export default class BlogPostTags extends ShadowComponent {
 }
 
 customElements.define('k-blog-post-tags', BlogPostTags);
+

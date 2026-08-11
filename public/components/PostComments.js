@@ -1,6 +1,8 @@
 import ShadowComponent from '/kempo-ui/components/ShadowComponent.js';
 import { html } from '/kempo-ui/lit-all.min.js';
-import { getComments } from '/blog/posts/sdk.js';
+import { getComments } from '/blog/sdk.js';
+import '/blog/components/PostComment.js';
+import '/blog/components/AddPostComment.js';
 
 export default class BlogPostComments extends ShadowComponent {
   static properties = {
@@ -39,6 +41,10 @@ export default class BlogPostComments extends ShadowComponent {
 
   async init(){
     if(!this.post){
+      const match = window.location.pathname.match(/\/([0-9a-f]{8})-[^/]+$/);
+      if(match) this.post = match[1];
+    }
+    if(!this.post){
       // No post ID provided; do not guess from URL. Comments will not load.
       this.loading = false;
       return;
@@ -54,10 +60,10 @@ export default class BlogPostComments extends ShadowComponent {
       const { user } = await res.json();
       if(!user) return;
       this.currentUserId = user.id;
+      this.canComment = true;
       const permRes = await fetch('/kempo/api/user/current/permissions');
       if(permRes.ok){
         const { permissions } = await permRes.json();
-        this.canComment = permissions.some(p => p === 'kempo-blog:comments:create' || p === 'comments:create');
         this.canModerate = permissions.some(p => p === 'kempo-blog:comments:others:delete' || p === 'comments:others:delete');
       }
     } catch {}
@@ -128,3 +134,4 @@ export default class BlogPostComments extends ShadowComponent {
 }
 
 customElements.define('k-blog-post-comments', BlogPostComments);
+

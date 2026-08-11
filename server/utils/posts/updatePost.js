@@ -7,6 +7,7 @@ import db from 'kempo/server/db/index.js';
 import { kempoBlogPost, kempoBlogTag } from '../../db/schema.js';
 import { eq } from 'drizzle-orm';
 
+
 export default async ({ rootDir, path, name, content, abstract, tags, isPublic, status, category, commentsEnabled, approvedCommentsOnly }) => {
   if(!rootDir) return [{ code: 400, msg: 'Root directory is required' }, null];
   if(!path) return [{ code: 400, msg: 'Post path is required' }, null];

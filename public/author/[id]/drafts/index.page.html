@@ -1,0 +1,26 @@
+<!--
+locked: true
+template: default
+-->
+<page title="Draft Posts">
+<content>
+  <script type="module" src="/blog/components/PostList.js"></script>
+  <script type="module" src="/blog/components/PostSummary.js"></script>
+  <script type="module" src="/blog/components/PostAuthor.js"></script>
+  <script type="module" src="/blog/components/PostTags.js"></script>
+  <script type="module" src="/kempo-ui/components/Icon.js"></script>
+  <a id="back-link" href="/blog" class="btn mb">
+    <k-icon name="arrow" direction="left"></k-icon> Back to Author
+  </a>
+  <h1>My Draft Posts</h1>
+  <k-blog-post-list id="post-list" status="draft"></k-blog-post-list>
+  <script type="module">
+    const segments = window.location.pathname.split('/').filter(Boolean);
+    const authorId = segments[segments.indexOf('author') + 1];
+    if(authorId){
+      document.getElementById('post-list').setAttribute('author', authorId);
+      document.getElementById('back-link').href = `/blog/author/${authorId}`;
+    }
+  </script>
+</content>
+</page>

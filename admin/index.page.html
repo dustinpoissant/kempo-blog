@@ -3,6 +3,7 @@ locked: true
 -->
 <page title="Blog - Admin">
 <content>
+  <script type="module" src="/kempo-ui/components/Tabs.js"></script>
   <script type="module" src="/kempo-ui/components/Table.js"></script>
   <script type="module" src="/kempo-ui/components/tableControls/FirstPage.js"></script>
   <script type="module" src="/kempo-ui/components/tableControls/PrevPage.js"></script>
@@ -12,6 +13,7 @@ locked: true
   <script type="module" src="/kempo-ui/components/tableControls/PageSize.js"></script>
   <script type="module" src="/admin/components/TableRowLink.js"></script>
   <script type="module" src="/kempo-ui/components/Icon.js"></script>
+  <script type="module" src="/kempo-ui/components/Dialog.js"></script>
   <script type="module">
     import TableControl from '/kempo-ui/components/tableControls/TableControl.js';
     import { html } from '/kempo-ui/lit-all.min.js';
@@ -20,18 +22,15 @@ locked: true
       static get properties() {
         return { fieldName: { type: String, attribute: 'field-name' } };
       }
-
       constructor() {
         super({ maxWidth: 40 });
         this.fieldName = 'postUrl';
       }
-
       open = () => {
         if(!this.record) return;
         const url = this.record[this.fieldName];
         if(url) window.open(url, '_blank', 'noopener,noreferrer');
       };
-
       render() {
         return html`<button class="no-btn icon-btn" @click="${this.open}"><k-icon name="open_in_new"></k-icon></button>`;
       }
@@ -39,69 +38,179 @@ locked: true
 
     customElements.define('blog-post-view-link', BlogPostViewLink);
   </script>
-  <div class="d-f mb" style="align-items: center; gap: var(--spacer)">
-    <h1 class="flex mb0">Blog Posts</h1>
-    <a href="/admin/extension/kempo-blog/create" class="btn">New Post</a>
+
+  <script type="module" src="/kempo-ui/components/Icon.js"></script>
+  <div class="d-f mb">
+    <h1 class="mb">Blog</h1>
+    <div class="flex"></div>
+    <k-permission has="kempo-blog:posts:create">
+      <button id="new-post-btn" class="btn primary">
+        <k-icon name="add"></k-icon> New Post
+      </button>
+    </k-permission>
   </div>
-  <k-table
-    id="posts-table"
-    enable-pages
-    page-size="25"
-    page-size-options="[10,25,50,100]"
-    placeholder="No posts yet."
-  >
-    <blog-post-view-link slot="before" field-name="postUrl"></blog-post-view-link>
-    <admin-table-row-link
-      slot="after"
-      url-pattern="/admin/extension/kempo-blog/edit/{postId}"
-      field-name="postId"
-    >
-      <k-icon name="edit"></k-icon>
-    </admin-table-row-link>
-    <div class="d-f full" style="align-items: center;">
-      <div>
-        <k-tc-first-page></k-tc-first-page>
-        <k-tc-prev-page></k-tc-prev-page>
-        <k-tc-next-page></k-tc-next-page>
-        <k-tc-last-page></k-tc-last-page>
-      </div>
-      <div class="flex"></div>
-      <div><k-tc-page-select></k-tc-page-select></div>
-      <div class="flex"></div>
-      <div><k-tc-page-size></k-tc-page-size></div>
-    </div>
-  </k-table>
+
+  <k-tabs id="post-tabs" persistent-id="blog-admin-posts">
+    <k-tab for="published">Published <span id="count-published"></span></k-tab>
+    <k-tab for="draft">Draft <span id="count-draft"></span></k-tab>
+    <k-tab for="disabled">Disabled <span id="count-disabled"></span></k-tab>
+
+    <k-tab-content name="published">
+      <k-table id="table-published" enable-pages page-size="25" page-size-options="[10,25,50]" placeholder="No published posts.">
+        <blog-post-view-link slot="before" field-name="postUrl"></blog-post-view-link>
+        <admin-table-row-link slot="before" url-pattern="/admin/extension/kempo-blog/edit/{id}" field-name="id">
+          <k-icon name="edit"></k-icon>
+        </admin-table-row-link>
+        <div class="d-f full" style="align-items: center;">
+          <div>
+            <k-tc-first-page></k-tc-first-page>
+            <k-tc-prev-page></k-tc-prev-page>
+            <k-tc-next-page></k-tc-next-page>
+            <k-tc-last-page></k-tc-last-page>
+          </div>
+          <div class="flex"></div>
+          <div><k-tc-page-select></k-tc-page-select></div>
+          <div class="flex"></div>
+          <div><k-tc-page-size></k-tc-page-size></div>
+        </div>
+      </k-table>
+    </k-tab-content>
+
+    <k-tab-content name="draft">
+      <k-table id="table-draft" enable-pages page-size="25" page-size-options="[10,25,50]" placeholder="No draft posts.">
+        <blog-post-view-link slot="before" field-name="postUrl"></blog-post-view-link>
+        <admin-table-row-link slot="before" url-pattern="/admin/extension/kempo-blog/edit/{id}" field-name="id">
+          <k-icon name="edit"></k-icon>
+        </admin-table-row-link>
+        <div class="d-f full" style="align-items: center;">
+          <div>
+            <k-tc-first-page></k-tc-first-page>
+            <k-tc-prev-page></k-tc-prev-page>
+            <k-tc-next-page></k-tc-next-page>
+            <k-tc-last-page></k-tc-last-page>
+          </div>
+          <div class="flex"></div>
+          <div><k-tc-page-select></k-tc-page-select></div>
+          <div class="flex"></div>
+          <div><k-tc-page-size></k-tc-page-size></div>
+        </div>
+      </k-table>
+    </k-tab-content>
+
+    <k-tab-content name="disabled">
+      <k-table id="table-disabled" enable-pages page-size="25" page-size-options="[10,25,50]" placeholder="No disabled posts.">
+        <blog-post-view-link slot="before" field-name="postUrl"></blog-post-view-link>
+        <admin-table-row-link slot="before" url-pattern="/admin/extension/kempo-blog/edit/{id}" field-name="id">
+          <k-icon name="edit"></k-icon>
+        </admin-table-row-link>
+        <div class="d-f full" style="align-items: center;">
+          <div>
+            <k-tc-first-page></k-tc-first-page>
+            <k-tc-prev-page></k-tc-prev-page>
+            <k-tc-next-page></k-tc-next-page>
+            <k-tc-last-page></k-tc-last-page>
+          </div>
+          <div class="flex"></div>
+          <div><k-tc-page-select></k-tc-page-select></div>
+          <div class="flex"></div>
+          <div><k-tc-page-size></k-tc-page-size></div>
+        </div>
+      </k-table>
+    </k-tab-content>
+  </k-tabs>
+
   <script type="module">
-    import { getPosts } from '/blog/sdk.js';
+    import { getPosts, getPostsCounts } from '/blog/sdk.js';
+    import Dialog from '/kempo-ui/components/Dialog.js';
+    import { html } from '/kempo-ui/lit-all.min.js';
 
-    await window.customElements.whenDefined('k-table');
+    const fields = [
+      { name: 'name', label: 'Title', size: 300 },
+      { name: 'authorName', label: 'Author', size: 200 },
+      { name: 'publicDisplay', label: 'Visibility', size: 100 },
+      { name: 'createdDisplay', label: 'Created', size: 120 },
+    ];
 
-    const table = document.getElementById('posts-table');
-    const [err, data] = await getPosts({ limit: 100, offset: 0 });
-    if(err){
-      table.setAttribute('placeholder', err.msg);
-    } else {
-      const records = data.posts.map(p => {
-        const postId = p.path.split('/').pop().split('-')[0];
-        return {
-          ...p,
-          postId,
-          postUrl: `/${p.path.replace('.page.html', '')}`,
-          displayName: p.name || p.path.split('/').pop().replace('.page.html', ''),
-          statusDisplay: `${p.status}${p.public ? '' : ' (private)'}`,
-          createdDisplay: new Date(p.created).toLocaleDateString()
-        };
+    const mapPost = p => ({
+      ...p,
+      postUrl: `/${p.path.replace('.page.html', '')}`,
+      publicDisplay: p.public ? 'Public' : 'Private',
+      createdDisplay: new Date(p.created).toLocaleDateString(),
+    });
+
+    const initialized = {};
+
+    const initTable = async (status) => {
+      if(initialized[status]) return;
+      initialized[status] = true;
+
+      const table = document.getElementById(`table-${status}`);
+      const [err, data] = await getPosts({ limit: 1, offset: 0, status });
+      if(err){
+        table.setAttribute('placeholder', err.msg);
+        return;
+      }
+
+      table.setData({ fields, records: [] });
+      table.setupFetchRecords(data.total, async (start, count) => {
+        const [e, d] = await getPosts({ limit: count, offset: start, status });
+        if(e) return [];
+        return d.posts.map(mapPost);
       });
-      table.setData({
-        records,
-        fields: [
-          { name: 'displayName', label: 'Title', size: 300 },
-          { name: 'author', label: 'Author', size: 150 },
-          { name: 'statusDisplay', label: 'Status', size: 130 },
-          { name: 'createdDisplay', label: 'Created', size: 120 }
-        ]
+    };
+
+    const loadCounts = async () => {
+      const [err, counts] = await getPostsCounts();
+      if(!err){
+        document.getElementById('count-draft').textContent = `(${counts.draft})`;
+        document.getElementById('count-published').textContent = `(${counts.published})`;
+        document.getElementById('count-disabled').textContent = `(${counts.disabled})`;
+      }
+    };
+
+    const tabsElement = document.getElementById('post-tabs');
+
+    // Handle tab switches - initialize table data when tab changes
+    tabsElement.addEventListener('tab', e => {
+      initTable(e.detail.tab);
+    });
+
+    loadCounts();
+    initTable(tabsElement.active || 'published');
+
+    const newPostBtn = document.getElementById('new-post-btn');
+    
+    const handleCreatePost = async (titleValue) => {
+      const title = (titleValue || '').trim();
+      if(!title){
+        alert('Please enter a post title');
+        return;
+      }
+      const { createPost } = await import('/blog/sdk.js');
+      const [err, result] = await createPost({ name: title, status: 'draft', public: true, tags: [] });
+      if(err){ alert('Error: ' + err.msg); return; }
+      window.location.href = `/admin/extension/kempo-blog/edit/${result.post.postId}`;
+    };
+
+    newPostBtn.addEventListener('click', async () => {
+      let postTitle = '';
+      const $dialog = Dialog.create(html`
+        <div class="p">
+          <label class="d-b mb">Post Title</label>
+          <input type="text" id="new-post-title" class="full" placeholder="Enter post title...">
+        </div>
+      `, {
+        title: 'New Post',
+        confirmText: 'Create',
+        confirmAction: async () => {
+          postTitle = document.getElementById('new-post-title')?.value || '';
+          if(postTitle.trim()) {
+            await handleCreatePost(postTitle);
+          }
+        }
       });
-    }
+    });
   </script>
 </content>
 </page>
+

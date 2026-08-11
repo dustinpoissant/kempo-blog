@@ -1,6 +1,6 @@
 import ShadowComponent from '/kempo-ui/components/ShadowComponent.js';
 import { html } from '/kempo-ui/lit-all.min.js';
-import { getPosts } from '/blog/posts/sdk.js';
+import { getPosts } from '/blog/sdk.js';
 
 export default class BlogRecentPosts extends ShadowComponent {
   static properties = {
@@ -44,7 +44,7 @@ export default class BlogRecentPosts extends ShadowComponent {
     return html`
       <ul>
         ${this.posts.map(p => html`
-          <li><a href="/blog/${p.path.replace(/^blog\//, '').replace(/\.page\.html$/, '')}">${p.name || p.path}</a></li>
+          <li><a href="/post/${p.path.replace(/^post\//, '').replace(/\.page\.html$/, '')}">${p.name || p.path}</a></li>
         `)}
       </ul>
     `;
@@ -52,3 +52,4 @@ export default class BlogRecentPosts extends ShadowComponent {
 }
 
 customElements.define('k-blog-recent-posts', BlogRecentPosts);
+

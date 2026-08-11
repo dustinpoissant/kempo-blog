@@ -1,6 +1,7 @@
 import ShadowComponent from '/kempo-ui/components/ShadowComponent.js';
-import { html } from '/kempo-ui/lit-all.min.js';
-import { deleteComment } from '/blog/posts/sdk.js';
+import { html, unsafeHTML } from '/kempo-ui/lit-all.min.js';
+import { deleteComment } from '/blog/sdk.js';
+import '/blog/components/PostAuthor.js';
 
 export default class BlogPostComment extends ShadowComponent {
   static properties = {
@@ -41,10 +42,11 @@ export default class BlogPostComment extends ShadowComponent {
           </div>
           ${canDelete ? html`<button class="btn ghost small" @click=${this.onDelete}><k-icon name="delete"></k-icon></button>` : ''}
         </div>
-        <div class="mt0">${c.content}</div>
+        <div class="mt0">${unsafeHTML(c.content)}</div>
       </div>
     `;
   }
 }
 
 customElements.define('k-blog-post-comment', BlogPostComment);
+

@@ -20,9 +20,9 @@ export default class BlogPostSummary extends ShadowComponent {
     if(!p) return html``;
     const tags = Array.isArray(p.tags) ? p.tags : [];
     return html`
-      <div class="card mb">
-        <h2 class="mb0"><a href="/blog/${p.path.replace(/^blog\//, '').replace(/\.page\.html$/, '')}">${p.name || p.path}</a></h2>
-        <div class="d-f g-sm tc-muted small mb0">
+      <div class="card mb pb">
+        <h2 class="mb0"><a class="td-n tc-default" href="/post/${p.path.replace(/^post\//, '').replace(/\.page\.html$/, '')}">${p.name || p.path}</a></h2>
+        <div class="d-f tc-muted small" style="gap: var(--spacer_h); align-items: center">
           <span><k-blog-post-author author="${p.author}"></k-blog-post-author></span>
           <span>&bull;</span>
           <k-timestamp timestamp="${p.created}"></k-timestamp>
@@ -36,3 +36,4 @@ export default class BlogPostSummary extends ShadowComponent {
 }
 
 customElements.define('k-blog-post-summary', BlogPostSummary);
+
