@@ -2,7 +2,7 @@ import { join } from 'path';
 import { readdir, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import crypto from 'crypto';
-import { getUsers, addUserToGroup, getSetting, createAdminGlobalContent } from 'kempo/server/sdk.js';
+import { getUsers, addUserToGroup, getSetting } from 'kempo/server/sdk.js';
 import parseFrontmatter from 'kempo/server/utils/fs/parseFrontmatter.js';
 import db from 'kempo/server/db/index.js';
 import { kempoBlogPost, kempoBlogTag } from './server/db/schema.js';
@@ -55,18 +55,14 @@ const adoptExistingPosts = async (rootDir) => {
 
 export default async () => {
   const rootDir = join(process.cwd(), 'public');
-  const adminDir = join(process.cwd(), 'node_modules', 'kempo', 'dist', 'admin');
 
   await adoptExistingPosts(rootDir);
 
-  await createAdminGlobalContent({
-    adminDir,
-    name: 'kempo-blog-nav',
-    location: 'admin-nav-extensions',
-    owner: 'kempo-blog',
-    priority: 0,
-    markup: '<k-aside-item icon="article" href="/admin/extension/kempo-blog/" no-expand>Blog</k-aside-item>',
-  });
+  /*
+    The admin nav entry is not registered here. admin/nav.global.html ships in this package and is
+    scanned at render time while the extension is enabled, so there is nothing to write on install
+    or remove on uninstall.
+  */
 
   const [, templateResult] = await generateBlogTemplate({ rootDir });
   if(templateResult) console.log('[kempo-blog] Blog template created/updated.');
