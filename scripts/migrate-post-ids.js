@@ -1,5 +1,5 @@
 // One-time migration: Assign post IDs and update comments to use post.id instead of path
-import db from '../server/db/index.js';
+import db from 'kempo/server/db/index.js';
 import { kempoBlogPost, blogComment } from '../server/db/schema.js';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
