@@ -11,15 +11,31 @@ on:
       - master
 
 jobs:
-  test:
+  # kempo resolves from the registry, which is what a site installing this extension gets.
+  published:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
     steps:
-      # kempo is a peer dependency, linked in development as `file:../kempo`. npm creates a dangling
-      # symlink rather than failing when that path is absent, so the sibling has to be checked out
-      # or the install would look fine and every import of kempo/** would fail at test time.
-      # Using the checkout instead of the published release also means a change here is tested
-      # against the host it is being written for, which is where these two repos break each other.
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - run: npm ci
+
+      # No database or RESEND_API_KEY required: both clients are constructed lazily.
+      - name: Run Unit Tests
+        run: npm test
+
+  # Same suite against the sibling checkout of the host. This extension resolves ~42 imports out of
+  # kempo, so it breaks whenever the host moves something it reaches into — this job is what
+  # surfaces that before a release, and it is advisory rather than blocking.
+  siblings:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
       - uses: actions/checkout@v4
         with:
           path: kempo-blog
@@ -30,8 +46,7 @@ jobs:
           path: kempo
 
       # Reached transitively: kempo/server/sdk.js re-exports sendEmailFromTemplate, which imports
-      # kempo-server/templating. Without this checkout kempo's own file: link to it dangles and
-      # every module here that touches the host SDK fails to import.
+      # kempo-server/templating.
       - uses: actions/checkout@v4
         with:
           repository: dustinpoissant/kempo-server
@@ -42,14 +57,16 @@ jobs:
           node-version: '22.x'
 
       - name: Install host
-        run: npm install --no-audit --no-fund
+        run: npm ci && npm run link:local
         working-directory: kempo
 
-      - name: Install
-        run: npm install --no-audit --no-fund
+      - run: npm ci
         working-directory: kempo-blog
 
-      # No database or RESEND_API_KEY required: both clients are constructed lazily.
+      - name: Link sibling checkout
+        run: npm run link:local
+        working-directory: kempo-blog
+
       - name: Run Unit Tests
         run: npm test
         working-directory: kempo-blog
