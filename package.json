@@ -28,8 +28,8 @@
     "marked": "^18.0.1"
   },
   "peerDependencies": {
-    "kempo": ">=4.2.20",
-    "kempo-ui": ">=0.4.38"
+    "kempo": ">=4.2.21",
+    "kempo-ui": ">=0.4.39"
   },
   "devDependencies": {
     "kempo-testing-framework": "^1.4.7"
