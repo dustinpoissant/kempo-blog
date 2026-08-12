@@ -21,8 +21,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /*
   public/ and admin/ ship inside this package and are served in place by the host, so their imports
-  are checked here as well. The browser modules under public/components import absolute
-  /kempo-ui/... URLs, which are skipped below as neither relative nor package specifiers.
+  are checked here as well.
 */
 const SOURCE_DIRS = ['server', 'hooks', 'public', 'admin', 'scripts', 'tests'];
 
@@ -41,7 +40,22 @@ const declared = new Set(
 
 const builtins = new Set(builtinModules);
 
-const walk = async dir => {
+/*
+  How the absolute URLs the browser requests map back onto files. These mirror the host's
+  customRoutes plus this package's own public-scope mount. Longest prefix first, so
+  /kempo-ui/icons/ wins over /kempo-ui/. /admin/** is intentionally absent: those are links into
+  the host's admin portal, which does not exist in this checkout.
+*/
+const BROWSER_ROUTES = [
+  ['/kempo-ui/icons/', ['node_modules/kempo-ui/icons']],
+  ['/kempo-ui/', ['node_modules/kempo-ui/dist']],
+  ['/kempo-css/', ['node_modules/kempo-css/dist']],
+  ['/kempo/', ['node_modules/kempo/dist/kempo']],
+  // This package is mounted at its public-scope, so /blog/** is its own public/ directory
+  ['/blog/', ['public']],
+];
+
+const walk = async (dir, extensions = ['.js']) => {
   let entries;
   try {
     entries = await readdir(dir, { withFileTypes: true });
@@ -52,8 +66,8 @@ const walk = async dir => {
   for(const entry of entries){
     const full = path.join(dir, entry.name);
     if(entry.isDirectory()){
-      files.push(...await walk(full));
-    } else if(entry.name.endsWith('.js')){
+      files.push(...await walk(full, extensions));
+    } else if(extensions.some(ext => entry.name.endsWith(ext))){
       files.push(full);
     }
   }
@@ -147,6 +161,54 @@ export default {
     }
     if(broken.length){
       return fail(`relative imports that do not resolve (usually the wrong number of ../ segments):\n    ${broken.join('\n    ')}`);
+    }
+    pass();
+  },
+
+  'every absolute browser URL resolves to a file that ships': async ({ pass, fail }) => {
+    if(!existsSync(path.join(root, 'node_modules', 'kempo-ui', 'dist'))){
+      return fail('kempo-ui is not installed, so /kempo-ui/** cannot be checked — run npm install');
+    }
+
+    const htmlFiles = (await Promise.all(
+      SOURCE_DIRS.map(d => walk(path.join(root, d), ['.html']))
+    )).flat();
+
+    const references = [];
+
+    for(const [file, source] of sources){
+      for(const specifier of specifiersFor(source)){
+        if(specifier.startsWith('/')) references.push([file, specifier]);
+      }
+    }
+
+    // The outage this guards was almost entirely <script src>, not JS imports
+    for(const file of htmlFiles){
+      const source = await readFile(file, 'utf8');
+      for(const m of source.matchAll(/(?:src|href)="(\/[^"]+)"/g)){
+        references.push([file, m[1]]);
+      }
+    }
+
+    const broken = [];
+    for(const [file, specifier] of references){
+      const url = specifier.split(/[?#]/)[0];
+      /*
+        Only static assets are checked. Links like /admin/extension/<name>/ are navigation to a
+        dynamic route, not a file on disk, and are recognised by having no extension.
+      */
+      if(!path.basename(url).includes('.')) continue;
+      const route = BROWSER_ROUTES.find(([prefix]) => url.startsWith(prefix));
+      // Unmapped prefixes are the consumer's own public/ files, which do not exist in this repo
+      if(!route) continue;
+      const [prefix, roots] = route;
+      const rest = url.slice(prefix.length);
+      if(roots.some(r => existsSync(path.join(root, r, rest)))) continue;
+      broken.push(`${rel(file)}\n      -> ${url}   (looked in ${roots.join(', ')})`);
+    }
+
+    if(broken.length){
+      return fail(`absolute browser URLs that 404 at runtime. These fail silently — a module that does not load never defines its custom element, so the component simply renders nothing:\n    ${[...new Set(broken)].join('\n    ')}`);
     }
     pass();
   },
