@@ -37,6 +37,15 @@ jobs:
         run: |
           npm run build
 
+      # kempo is a peer dependency and is not installed by `npm ci` here, so the suite — which
+      # imports through it — needs it present. The published release is the right one to test
+      # against: it is what a site installing this extension will actually pair it with.
+      - name: Install the host for the test gate
+        run: npm install --no-save kempo@latest kempo-server@latest
+
+      - name: Run Unit Tests
+        run: npm test
+
       - name: Set version type
         id: version
         run: |
