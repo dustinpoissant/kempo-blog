@@ -7,6 +7,21 @@ import '/kempo-ui/components/Toggle.js';
 import '/kempo-ui/components/SegmentedControl.js';
 import '/kempo-ui/components/Tags.js';
 
+/*
+  The editor only auto-loads the controls belonging to a named `controls` preset. These are slotted
+  instead (see render), so they have to be imported here or they render as inert unknown elements.
+*/
+import '/kempo-ui/components/controls/Menu.js';
+import '/kempo-ui/components/controls/FormatBlock.js';
+import '/kempo-ui/components/controls/Bold.js';
+import '/kempo-ui/components/controls/Italic.js';
+import '/kempo-ui/components/controls/Quote.js';
+import '/kempo-ui/components/controls/InlineCode.js';
+import '/kempo-ui/components/controls/BulletList.js';
+import '/kempo-ui/components/controls/NumberList.js';
+import '/kempo-ui/components/controls/MdLink.js';
+import '/kempo-ui/components/controls/MdImage.js';
+
 export default class BlogPostEdit extends ShadowComponent {
   static properties = {
     path: { type: String, reflect: true },
@@ -144,7 +159,34 @@ export default class BlogPostEdit extends ShadowComponent {
         </div>
         <div class="mb">
           <h3 class="mb0">Content</h3>
-          <k-markdown-editor style="--height: 600px; --min-height: 15rem; --max-height: 75vh" .value=${this.content} @change=${this.contentChangeHandler} controls="minimal"></k-markdown-editor>
+          <!--
+            The controls are slotted rather than using a named preset: "minimal" leaves out
+            kc-md-image, so there was no way to put a picture in a post, and "full" swings the other
+            way with tables and speech-to-text that a blog post does not need. This is minimal plus
+            the two things a writer actually reaches for — a link and an image.
+
+            kc-md-image shows a Browse button when a file extension has registered
+            window.kempo.openAssetPicker (kempo-files does), and falls back to a plain URL field
+            when none is installed.
+          -->
+          <k-markdown-editor style="--height: 600px; --min-height: 15rem; --max-height: 75vh" .value=${this.content} @change=${this.contentChangeHandler}>
+            <div slot="controls-top" style="display: contents;">
+              <kc-menu>
+                <k-icon slot="icon" name="text_fields"></k-icon>
+                <kc-format-block tag="h1"></kc-format-block>
+                <kc-format-block tag="h3"></kc-format-block>
+                <kc-format-block tag="h5"></kc-format-block>
+              </kc-menu>
+              <kc-bold></kc-bold>
+              <kc-italic></kc-italic>
+              <kc-quote></kc-quote>
+              <kc-inline-code></kc-inline-code>
+              <kc-bullet-list></kc-bullet-list>
+              <kc-number-list></kc-number-list>
+              <kc-md-link></kc-md-link>
+              <kc-md-image></kc-md-image>
+            </div>
+          </k-markdown-editor>
         </div>
       </form>
     `;
