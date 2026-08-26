@@ -5,29 +5,25 @@ export default async ({ oldVersion, newVersion, oldKempo, newKempo }) => {
   // Column-level schema migrations go here as needed between versions
 
   /*
-    Rewrite the site's blog-post template on every upgrade.
+    Rewrite the site's blog-post template.
 
-    The template is generated into the site's own project, so anything inlined into it is frozen at
-    the version that generated it — nothing here re-ran it before, which is why the post markup
-    could never be fixed for a site once installed. The body is now thin (it pulls this package's
-    fragments by name), so this regeneration is what moves an existing site onto that indirection;
-    after this runs once, changes to the post chrome no longer need an upgrade at all.
+    Older versions generated it by copying default.template.html and substituting its <location />.
+    That copy was a snapshot of the site's chrome at install time and drifted from it silently
+    afterwards. The template now extends the site default instead, which composes the two on every
+    render — so this rewrite is what moves an already-installed site off its stale copy, and once
+    done there is nothing left to keep in step.
 
-    It also re-derives the template from the site's *current* default.template.html, so a site that
-    has since changed its own header, nav or footer gets those picked up here too.
+    It also moves the post chrome onto this package's fragments, so from here on changing the post
+    header or comments section is a release of this extension and needs no regeneration at all.
 
-    Safe to repeat: generateBlogTemplate updates in place when the template already exists, and the
-    file is extension-owned and locked, so it holds no edits of the site's own to lose.
+    Safe to repeat: the template is extension-owned and locked, and the markup written is now the
+    same for every site, so this holds no edits of the site's own to lose.
   */
   const [templateError] = await generateBlogTemplate({ rootDir: join(process.cwd(), 'public') });
   if(templateError){
-    /*
-      Never fail the upgrade over this. A site whose default template has no <location /> to build
-      from keeps the template it already had, which still renders — the extension is just left on
-      the older inlined copy until that is fixed.
-    */
-    console.warn(`[kempo-blog] Could not regenerate the blog template: ${templateError.msg}`);
+    // Never fail the upgrade over this — the site keeps the template it had, which still renders
+    console.warn(`[kempo-blog] Could not rewrite the blog template: ${templateError.msg}`);
   } else {
-    console.log('[kempo-blog] Blog template regenerated.');
+    console.log('[kempo-blog] Blog template updated to extend the site default.');
   }
 };

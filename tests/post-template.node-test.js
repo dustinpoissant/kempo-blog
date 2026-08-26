@@ -71,49 +71,35 @@ export default {
     pass();
   },
 
-  'the template body stays thin so upgrades reach existing sites': ({ pass, fail }) => {
-    const body = generator.match(/const BLOG_TEMPLATE_BODY = `([\s\S]*?)`;/)?.[1];
-    if(!body) return fail('could not read BLOG_TEMPLATE_BODY');
+  'the template extends the site default and inlines nothing': ({ pass, fail }) => {
+    const body = generator.match(/const BLOG_TEMPLATE = `([\s\S]*?)`;/)?.[1];
+    if(!body) return fail('could not read BLOG_TEMPLATE');
 
     /*
-      The body is copied into the site's own project, so anything inlined here is frozen there at
-      the version that generated it. Keeping the post chrome in fragments is what lets an upgrade
-      change it without regenerating anything.
+      Two separate staleness traps, both closed here.
+
+      Extending rather than copying: a copy of the site's default template is a snapshot, and it
+      drifts the moment the site edits its own template — including by editing the file directly in
+      an editor, which fires no event, so no amount of regenerating-on-change would catch it.
+
+      Chrome in fragments rather than inlined: this string is written into the site's project, so
+      anything inlined here is frozen at the version that wrote it. Fragments are read from this
+      package per render, so changing them is a release and nothing else.
     */
-    if(/<k-blog-|<header|<script/.test(body)){
-      return fail('post chrome is inlined in BLOG_TEMPLATE_BODY again — it belongs in a fragment, or upgrades cannot reach sites that already generated their template');
+    if(!/<template\s+extends="default"/.test(body)){
+      return fail('the template must extend the site default rather than copying it — a copy drifts the moment the site edits its own template, including by editing the file directly, which fires no event at all');
     }
-    if(!/<location\s*\/>/.test(body)) return fail('BLOG_TEMPLATE_BODY must keep a <location /> for the post content');
+    if(/<k-blog-|<header|<script/.test(body)){
+      return fail('post chrome is inlined in BLOG_TEMPLATE again — it belongs in a fragment, or upgrades cannot reach sites that already generated their template');
+    }
+    if(!/<location\s*\/>/.test(body)) return fail('BLOG_TEMPLATE must keep a <location /> for the post content');
     pass();
   },
 
-  'update.js regenerates the template': async ({ pass, fail }) => {
+  'update.js rewrites the template': async ({ pass, fail }) => {
     const update = await readFile(path.join(root, 'update.js'), 'utf8');
     if(!/generateBlogTemplate/.test(update)){
-      return fail('update.js must regenerate the blog template — otherwise a site installed on an older version keeps its stale copy forever');
-    }
-    pass();
-  },
-
-  'a template:updated hook is registered and regenerates': async ({ pass, fail }) => {
-    const config = JSON.parse(await readFile(path.join(root, 'kempo-config.json'), 'utf8'));
-    const handler = config.hooks?.['template:updated'];
-    if(!handler){
-      return fail('kempo-config.json must register a template:updated hook — the generated post template is a copy of the site\'s default template, and without this it keeps stale literal markup until the extension is next upgraded');
-    }
-
-    const file = path.join(root, handler.replace(/^\.\//, ''));
-    if(!existsSync(file)) return fail(`template:updated handler ${handler} does not ship`);
-
-    const source = await readFile(file, 'utf8');
-    if(!/generateBlogTemplate/.test(source)) return fail('the template:updated handler must regenerate the blog template');
-
-    /*
-      Regenerating writes a template, which fires template:updated again. Without a guard on which
-      file changed that recurses.
-    */
-    if(!/default\.template\.html/.test(source)){
-      return fail('the handler must act only on default.template.html — regenerating fires template:updated again, so an unguarded handler recurses');
+      return fail('update.js must rewrite the blog template — it is what moves a site off the copied template it generated under an older version onto one that extends the site default');
     }
     pass();
   }
