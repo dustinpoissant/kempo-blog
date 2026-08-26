@@ -12,7 +12,8 @@ import { fileURLToPath } from 'url';
   keep rendering and simply lose their header, byline, tags and comments — which is exactly what
   shipped once, because the generator wrote blog/blog-post.template.html while every post asked for
   post/blog-post. A <fragment> naming a file that does not ship renders its fallback rather than
-  complaining. Only the patch itself fails loudly, and only when a visitor asks for a post.
+  complaining. And a patch operation whose id is missing is skipped, not thrown, so that a template
+  changing under an extension cannot take a site down — which means nothing here fails loudly at all.
 */
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -98,7 +99,7 @@ export default {
 
   'the site default template is given the id the patch targets': ({ pass, fail }) => {
     if(!/ensureMainId/.test(generator)){
-      return fail('nothing adds id="main" to a site default template that predates it — the patch would fail at render for every post');
+      return fail('nothing adds id="main" to a site default template that predates it — the patch would find nothing to replace, and kempo-server skips a missing id rather than erroring, so posts would quietly render without their article wrapper, header and comments');
     }
     if(!/id="main"/.test(generator)) return fail('the id being added does not match what the patch targets');
     pass();

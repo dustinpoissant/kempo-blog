@@ -48,12 +48,16 @@ const LEGACY_TEMPLATE_FILES = ['post/blog-post.template.html', 'blog/blog-post.t
 
 /*
   The patch targets `id="main"`, which kempo's default template carries. A site whose template
-  predates that has a bare <main>, and every post would fail to render — loudly, but only once a
-  visitor asked for one.
+  predates that has a bare <main>, and the patch would find nothing to replace.
 
-  Adding the attribute is additive, idempotent, and the exact thing the upgrade needs, so it is done
-  here rather than left as a log line nobody reads. Anything less than unambiguous is left alone and
-  reported instead: a template with several <main> elements, or none, is not ours to guess about.
+  That failure is quiet by design — kempo-server skips an operation whose id is missing rather than
+  failing the page, so that core changing a template cannot take a site down. Quiet is the problem
+  here: posts would render, just without their article wrapper, header, byline or comments, and the
+  only evidence would be a line in a server log.
+
+  Adding the attribute is additive and idempotent, so it is done here rather than left as a warning
+  nobody reads. Anything less than unambiguous is left alone and reported instead: a template with
+  several <main> elements, or none, is not ours to guess about.
 */
 const ensureMainId = async rootDir => {
   const file = join(rootDir, 'default.template.html');
@@ -64,7 +68,7 @@ const ensureMainId = async rootDir => {
 
   const bare = markup.match(/<main(\s[^>]*)?>/g) || [];
   if(bare.length !== 1){
-    return `default.template.html has ${bare.length} <main> elements — add id="main" to the one wrapping <location /> by hand, or posts will not render`;
+    return `default.template.html has ${bare.length} <main> elements — add id="main" to the one wrapping <location /> by hand, or posts will render without their article wrapper, header and comments`;
   }
 
   await writeFile(file, markup.replace(/<main(\s[^>]*)?>/, (_, attrs) => `<main id="main"${attrs || ''}>`), 'utf-8');
