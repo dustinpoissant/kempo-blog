@@ -93,5 +93,28 @@ export default {
       return fail('update.js must regenerate the blog template — otherwise a site installed on an older version keeps its stale copy forever');
     }
     pass();
+  },
+
+  'a template:updated hook is registered and regenerates': async ({ pass, fail }) => {
+    const config = JSON.parse(await readFile(path.join(root, 'kempo-config.json'), 'utf8'));
+    const handler = config.hooks?.['template:updated'];
+    if(!handler){
+      return fail('kempo-config.json must register a template:updated hook — the generated post template is a copy of the site\'s default template, and without this it keeps stale literal markup until the extension is next upgraded');
+    }
+
+    const file = path.join(root, handler.replace(/^\.\//, ''));
+    if(!existsSync(file)) return fail(`template:updated handler ${handler} does not ship`);
+
+    const source = await readFile(file, 'utf8');
+    if(!/generateBlogTemplate/.test(source)) return fail('the template:updated handler must regenerate the blog template');
+
+    /*
+      Regenerating writes a template, which fires template:updated again. Without a guard on which
+      file changed that recurses.
+    */
+    if(!/default\.template\.html/.test(source)){
+      return fail('the handler must act only on default.template.html — regenerating fires template:updated again, so an unguarded handler recurses');
+    }
+    pass();
   }
 };

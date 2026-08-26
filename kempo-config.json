@@ -4,7 +4,8 @@
   "schema": "./server/db/schema.js",
   "hooks": {
     "user:registered": "./hooks/user-registered.js",
-    "middleware:before_page": "./hooks/before-page-guard.js"
+    "middleware:before_page": "./hooks/before-page-guard.js",
+    "template:updated": "./hooks/default-template-updated.js"
   },
   "permissions": [
     {
