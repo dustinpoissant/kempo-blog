@@ -1,0 +1,14 @@
+<fragment>
+  <header class="mb">
+    <h1>{{title}}</h1>
+    <div class="d-f g-sm tc-muted small">
+      <span>By <k-blog-post-author author="{{author}}"></k-blog-post-author></span>
+      <span>&bull;</span>
+      <k-timestamp timestamp="{{created}}"></k-timestamp>
+    </div>
+    <k-blog-post-tags tags="{{tags}}"></k-blog-post-tags>
+  </header>
+  <script type="module" src="/kempo-ui/components/Timestamp.js"></script>
+  <script type="module" src="/blog/components/PostAuthor.js"></script>
+  <script type="module" src="/blog/components/PostTags.js"></script>
+</fragment>
