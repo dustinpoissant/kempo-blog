@@ -65,7 +65,10 @@ export default async () => {
   */
 
   const [, templateResult] = await generateBlogTemplate({ rootDir });
-  if(templateResult) console.log('[kempo-blog] Blog template created/updated.');
+  if(templateResult){
+    console.log('[kempo-blog] Blog post template patch written.');
+    if(templateResult.warning) console.warn(`[kempo-blog] ${templateResult.warning}`);
+  }
 
   const [settingErr, newUserGroupsSetting] = await getSetting('kempo-blog', 'new_user_groups');
   if(settingErr || !newUserGroupsSetting) return;
