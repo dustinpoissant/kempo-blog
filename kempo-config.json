@@ -6,6 +6,22 @@
     "user:registered": "./hooks/user-registered.js",
     "middleware:before_page": "./hooks/before-page-guard.js"
   },
+  "widgets": [
+    {
+      "key": "posts",
+      "title": "Blog",
+      "description": "Post counts by status and the latest posts.",
+      "icon": "article",
+      "element": "k-blog-posts-widget",
+      "module": "/blog/components/PostsWidget.js",
+      "defaultWidth": 2,
+      "defaultHeight": 2,
+      "minWidth": 2,
+      "minHeight": 2,
+      "permission": "posts:create",
+      "priority": 60
+    }
+  ],
   "permissions": [
     {
       "name": "posts:create",
