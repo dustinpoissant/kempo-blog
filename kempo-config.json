@@ -1,6 +1,7 @@
 {
+  "git": "https://github.com/dustinpoissant/kempo-blog",
   "docs": "https://github.com/dustinpoissant/kempo-blog#readme",
-  "public-scope": "blog/posts",
+  "public-scope": "blog",
   "schema": "./server/db/schema.js",
   "hooks": {
     "user:registered": "./hooks/user-registered.js",
