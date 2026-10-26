@@ -1,6 +1,6 @@
 {
   "name": "kempo-blog",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "A blog for kempo cms",
   "license": "MIT",
   "author": "Dustin Poissant <dustinpoissant@gmail.com>",
