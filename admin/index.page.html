@@ -11,34 +11,9 @@ locked: true
   <script type="module" src="/kempo-ui/components/controls/TcLastPage.js"></script>
   <script type="module" src="/kempo-ui/components/controls/TcPageSelect.js"></script>
   <script type="module" src="/kempo-ui/components/controls/TcPageSize.js"></script>
-  <script type="module" src="/admin/components/TableRowLink.js"></script>
+  <script type="module" src="/kempo-ui/components/controls/TcOpen.js"></script>
   <script type="module" src="/kempo-ui/components/Icon.js"></script>
   <script type="module" src="/kempo-ui/components/Dialog.js"></script>
-  <script type="module">
-    import TableControl from '/kempo-ui/components/tableControls/TableControl.js';
-    import { html } from '/kempo-ui/lit-all.min.js';
-
-    class BlogPostViewLink extends TableControl {
-      static get properties() {
-        return { fieldName: { type: String, attribute: 'field-name' } };
-      }
-      constructor() {
-        super({ maxWidth: 40 });
-        this.fieldName = 'postUrl';
-      }
-      open = () => {
-        if(!this.record) return;
-        const url = this.record[this.fieldName];
-        if(url) window.open(url, '_blank', 'noopener,noreferrer');
-      };
-      render() {
-        return html`<button class="no-btn icon-btn" @click="${this.open}"><k-icon name="open_in_new"></k-icon></button>`;
-      }
-    }
-
-    customElements.define('blog-post-view-link', BlogPostViewLink);
-  </script>
-
   <script type="module" src="/kempo-ui/components/Icon.js"></script>
   <div class="d-f mb">
     <h1 class="mb">Blog</h1>
@@ -56,11 +31,8 @@ locked: true
     <k-tab for="disabled">Disabled <span id="count-disabled"></span></k-tab>
 
     <k-tab-content name="published">
-      <k-table id="table-published" enable-pages page-size="25" page-size-options="[10,25,50]" placeholder="No published posts.">
-        <blog-post-view-link slot="before" field-name="postUrl"></blog-post-view-link>
-        <admin-table-row-link slot="before" url-pattern="/admin/extension/kempo-blog/edit/{id}" field-name="id">
-          <k-icon name="edit"></k-icon>
-        </admin-table-row-link>
+      <k-table open-on-click id="table-published" enable-pages page-size="25" page-size-options="[10,25,50]" placeholder="No published posts.">
+        <kc-tc-open slot="before" title="Edit"><k-icon name="edit"></k-icon></kc-tc-open>
         <div class="d-f full" style="align-items: center;">
           <div>
             <kc-tc-first-page></kc-tc-first-page>
@@ -77,11 +49,8 @@ locked: true
     </k-tab-content>
 
     <k-tab-content name="draft">
-      <k-table id="table-draft" enable-pages page-size="25" page-size-options="[10,25,50]" placeholder="No draft posts.">
-        <blog-post-view-link slot="before" field-name="postUrl"></blog-post-view-link>
-        <admin-table-row-link slot="before" url-pattern="/admin/extension/kempo-blog/edit/{id}" field-name="id">
-          <k-icon name="edit"></k-icon>
-        </admin-table-row-link>
+      <k-table open-on-click id="table-draft" enable-pages page-size="25" page-size-options="[10,25,50]" placeholder="No draft posts.">
+        <kc-tc-open slot="before" title="Edit"><k-icon name="edit"></k-icon></kc-tc-open>
         <div class="d-f full" style="align-items: center;">
           <div>
             <kc-tc-first-page></kc-tc-first-page>
@@ -98,11 +67,8 @@ locked: true
     </k-tab-content>
 
     <k-tab-content name="disabled">
-      <k-table id="table-disabled" enable-pages page-size="25" page-size-options="[10,25,50]" placeholder="No disabled posts.">
-        <blog-post-view-link slot="before" field-name="postUrl"></blog-post-view-link>
-        <admin-table-row-link slot="before" url-pattern="/admin/extension/kempo-blog/edit/{id}" field-name="id">
-          <k-icon name="edit"></k-icon>
-        </admin-table-row-link>
+      <k-table open-on-click id="table-disabled" enable-pages page-size="25" page-size-options="[10,25,50]" placeholder="No disabled posts.">
+        <kc-tc-open slot="before" title="Edit"><k-icon name="edit"></k-icon></kc-tc-open>
         <div class="d-f full" style="align-items: center;">
           <div>
             <kc-tc-first-page></kc-tc-first-page>
@@ -125,7 +91,7 @@ locked: true
     import { html } from '/kempo-ui/lit-all.min.js';
 
     const fields = [
-      { name: 'name', label: 'Title', size: 300 },
+      { name: 'name', label: 'Title' },
       { name: 'authorName', label: 'Author', size: 200 },
       { name: 'publicDisplay', label: 'Visibility', size: 100 },
       { name: 'createdDisplay', label: 'Created', size: 120 },
@@ -133,6 +99,7 @@ locked: true
 
     const mapPost = p => ({
       ...p,
+      _url: `/admin/extension/kempo-blog/edit/${p.id}`,
       postUrl: `/${p.path.replace('.page.html', '')}`,
       publicDisplay: p.public ? 'Public' : 'Private',
       createdDisplay: new Date(p.created).toLocaleDateString(),

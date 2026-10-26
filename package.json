@@ -25,8 +25,8 @@
     "marked": "^18.0.1"
   },
   "peerDependencies": {
-    "kempo": ">=4.9.6",
-    "kempo-ui": ">=0.4.39"
+    "kempo": ">=4.9.7",
+    "kempo-ui": ">=0.7.0"
   },
   "devDependencies": {
     "kempo-testing-framework": "^1.4.7"
