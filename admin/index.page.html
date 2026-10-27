@@ -25,7 +25,7 @@ locked: true
     </k-permission>
   </div>
 
-  <k-tabs id="post-tabs" persistent-id="blog-admin-posts">
+  <k-tabs id="post-tabs" active="published" hash-routing>
     <k-tab for="published">Published <span id="count-published"></span></k-tab>
     <k-tab for="draft">Draft <span id="count-draft"></span></k-tab>
     <k-tab for="disabled">Disabled <span id="count-disabled"></span></k-tab>
@@ -83,6 +83,8 @@ locked: true
         </div>
       </k-table>
     </k-tab-content>
+
+    <location name="blog-admin-tabs" />
   </k-tabs>
 
   <script type="module">
@@ -112,13 +114,13 @@ locked: true
       initialized[status] = true;
 
       const table = document.getElementById(`table-${status}`);
-      const [err, data] = await getPosts({ limit: 1, offset: 0, status });
+      const [err, data] = await getPosts({ limit: table.getPageSize(), offset: 0, status });
       if(err){
         table.setAttribute('placeholder', err.msg);
         return;
       }
 
-      table.setData({ fields, records: [] });
+      table.setData({ fields, records: data.posts.map(mapPost) });
       table.setupFetchRecords(data.total, async (start, count) => {
         const [e, d] = await getPosts({ limit: count, offset: start, status });
         if(e) return [];
@@ -137,13 +139,17 @@ locked: true
 
     const tabsElement = document.getElementById('post-tabs');
 
-    // Handle tab switches - initialize table data when tab changes
-    tabsElement.addEventListener('tab', e => {
-      initTable(e.detail.tab);
-    });
+    // Each tab loads its posts the first time it is shown.
+    const loadWhenShown = status => {
+      const pane = document.getElementById(`table-${status}`).closest('k-tab-content');
+      if(pane.active) initTable(status);
+      else tabsElement.addEventListener('tabfirstshown', ({ detail }) => {
+        if(detail.tab === pane.name) initTable(status);
+      });
+    };
+    ['published', 'draft', 'disabled'].forEach(loadWhenShown);
 
     loadCounts();
-    initTable(tabsElement.active || 'published');
 
     const newPostBtn = document.getElementById('new-post-btn');
     
