@@ -52,7 +52,7 @@ export default async (request, response) => {
   const userId = session?.user?.id;
   const [, canReadPrivate] = await currentUserHasPermission(token, 'posts:read');
 
-  const resolvedStatus = status || (canReadPrivate ? undefined : 'published');
+  const resolvedStatus = canReadPrivate ? status : 'published';
   const includePrivate = !!canReadPrivate || (userId && author === userId);
 
   const [error, data] = await getPosts({

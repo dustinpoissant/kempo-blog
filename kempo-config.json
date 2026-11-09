@@ -23,6 +23,41 @@
       "priority": 60
     }
   ],
+  "page_widgets": [
+    {
+      "key": "recent-posts",
+      "title": "Recent posts",
+      "description": "The latest published posts, optionally from one category or tag.",
+      "icon": "article",
+      "category": "blog",
+      "category_title": "Blog",
+      "keywords": ["blog", "news", "latest", "posts", "articles"],
+      "tag": "k-blog-recent-posts-widget",
+      "page_component": "/blog/components/RecentPostsWidget.js",
+      "attributes": [
+        { "name": "limit", "type": "number", "label": "Posts", "default": 5, "min": 1, "max": 50 },
+        { "name": "category", "type": "string", "label": "Category", "hint": "Only posts in this category. Use the category's key.", "default": "" },
+        { "name": "tag", "type": "string", "label": "Tag", "hint": "Only posts with this tag.", "default": "" }
+      ]
+    },
+    {
+      "key": "post-list",
+      "title": "Post list",
+      "description": "Published posts, a page at a time, optionally from one category, tag or author.",
+      "icon": "article",
+      "category": "blog",
+      "category_title": "Blog",
+      "keywords": ["blog", "posts", "list", "archive", "articles"],
+      "tag": "k-blog-post-list-widget",
+      "page_component": "/blog/components/PostListWidget.js",
+      "attributes": [
+        { "name": "category", "type": "string", "label": "Category", "hint": "Only posts in this category. Use the category's key.", "default": "" },
+        { "name": "tag", "type": "string", "label": "Tag", "hint": "Only posts with this tag.", "default": "" },
+        { "name": "author", "type": "string", "label": "Author", "hint": "Only posts by this author's user id.", "default": "" },
+        { "name": "page-size", "type": "number", "label": "Posts per page", "default": 10, "min": 1, "max": 100 }
+      ]
+    }
+  ],
   "permissions": [
     {
       "name": "posts:create",
